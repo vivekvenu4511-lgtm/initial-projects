@@ -1,0 +1,19 @@
+# Aria v6 — Core dependencies (no torch/sentence-transformers)
+# Use this if requirements.txt fails due to Windows Long Path errors:
+#   pip install -r requirements_core.txt
+fastapi>=0.110.0
+uvicorn>=0.27.0
+pydantic>=2.5.0
+requests>=2.31.0
+httpx>=0.26.0
+openpyxl>=3.1.2
+python-docx>=1.1.0
+python-pptx>=0.6.23
+PyPDF2>=3.0.1
+pdfminer.six>=20221105
+python-multipart>=0.0.9
+duckduckgo_search>=5.0.0
+chromadb>=0.4.22
+apscheduler>=3.10.4
+psutil>=5.9.8
+pytz>=2024.1

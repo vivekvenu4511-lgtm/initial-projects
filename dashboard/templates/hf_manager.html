@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aria &mdash; Local Model Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0b0e14;
+  --bg2:      #111520;
+  --bg3:      #181d2a;
+  --border:   #232a3a;
+  --accent:   #4f9eff;
+  --accent2:  #a78bfa;
+  --green:    #22d3a0;
+  --yellow:   #fbbf24;
+  --red:      #f87171;
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --card:     #141824;
+  --radius:   10px;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Syne', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -- TOP NAV ----------------------------------------- */
+.topnav {
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px; height: 54px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.topnav-logo {
+  font-weight: 800; font-size: 17px; letter-spacing: -.5px;
+  color: var(--text);
+}
+.topnav-logo span { color: var(--accent); }
+.topnav-sep { flex: 1; }
+.topnav-badge {
+  font-family: var(--mono); font-size: 11px;
+  padding: 3px 9px; border-radius: 99px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted);
+}
+.topnav-badge.green { color: var(--green); border-color: var(--green); }
+.topnav-badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+.topnav-badge.red { color: var(--red); border-color: var(--red); }
+.nav-home {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--muted);
+  text-decoration: none;
+  padding: 5px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: all .2s;
+}
+.nav-home:hover { color: var(--text); border-color: var(--accent); }
+
+/* -- LAYOUT ------------------------------------------ */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* -- SIDEBAR ----------------------------------------- */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  position: sticky; top: 54px;
+  height: calc(100vh - 54px);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.sidebar-section { padding: 0 14px 4px; }
+.sidebar-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; color: var(--muted);
+  text-transform: uppercase; padding: 12px 6px 6px;
+}
+.sidebar-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px; border-radius: 8px;
+  border: none; background: transparent; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--muted); transition: all .15s; text-align: left;
+}
+.sidebar-btn:hover { background: var(--bg3); color: var(--text); }
+.sidebar-btn.active { background: rgba(79,158,255,.12); color: var(--accent); }
+.sidebar-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-spacer { flex: 1; }
+
+/* System info card at bottom of sidebar */
+.sys-card {
+  margin: 16px; padding: 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.sys-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; padding: 3px 0;
+}
+.sys-label { color: var(--muted); font-family: var(--mono); }
+.sys-value { color: var(--text); font-family: var(--mono); font-weight: 600; }
+.sys-value.green { color: var(--green); }
+.sys-value.yellow { color: var(--yellow); }
+.sys-value.red { color: var(--red); }
+
+/* -- MAIN -------------------------------------------- */
+.main { padding: 24px; overflow-y: auto; }
+
+/* panels */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* -- PAGE TITLE -------------------------------------- */
+.page-title {
+  font-size: 22px; font-weight: 800; margin-bottom: 4px;
+}
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+/* -- TOOLBAR ------------------------------------------ */
+.toolbar {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+.search-box {
+  flex: 1; min-width: 220px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  font-family: var(--mono); font-size: 13px; color: var(--text);
+  outline: none; transition: border .2s;
+}
+.search-box:focus { border-color: var(--accent); }
+.btn {
+  padding: 9px 18px; border-radius: var(--radius);
+  border: none; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  transition: all .15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3a8aee; }
+.btn-ghost {
+  background: var(--bg2); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+.btn-danger { background: rgba(248,113,113,.12); color: var(--red); border: 1px solid var(--red); }
+.btn-danger:hover { background: rgba(248,113,113,.22); }
+.btn-green { background: rgba(34,211,160,.12); color: var(--green); border: 1px solid var(--green); }
+.btn-green:hover { background: rgba(34,211,160,.22); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* -- FILTER CHIPS ----------------------------------- */
+.chip-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.chip {
+  padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--text); }
+.chip.active { background: rgba(79,158,255,.15); border-color: var(--accent); color: var(--accent); }
+
+/* -- MODEL GRID --------------------------------------- */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.model-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px; cursor: pointer;
+  transition: all .15s;
+  position: relative;
+}
+.model-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.model-card.active-card { border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+
+.mc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.mc-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.mc-param { font-family: var(--mono); font-size: 11px; color: var(--accent2); font-weight: 600; }
+.mc-family {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.mc-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.mc-tag {
+  font-size: 10px; padding: 2px 7px; border-radius: 99px;
+  background: var(--bg3); color: var(--muted);
+  font-family: var(--mono);
+}
+.mc-tag.code { color: #60a5fa; }
+.mc-tag.uncensored { color: var(--yellow); }
+.mc-tag.fast { color: var(--green); }
+.mc-tag.reasoning { color: var(--accent2); }
+
+.mc-footer { display: flex; justify-content: space-between; align-items: center; }
+.mc-size { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.mc-status {
+  font-size: 11px; padding: 2px 8px; border-radius: 99px;
+  font-family: var(--mono); font-weight: 600;
+}
+.mc-status.ready { background: rgba(34,211,160,.12); color: var(--green); }
+.mc-status.downloading { background: rgba(251,191,36,.12); color: var(--yellow); }
+.mc-status.loading { background: rgba(79,158,255,.12); color: var(--accent); }
+.mc-status.error { background: rgba(248,113,113,.12); color: var(--red); }
+.mc-status.not_downloaded { background: var(--bg3); color: var(--muted); }
+
+.mc-active-dot {
+  position: absolute; top: 10px; right: 10px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* -- MODEL DETAIL DRAWER ------------------------------- */
+.drawer-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(2px);
+}
+.drawer-overlay.open { display: flex; justify-content: flex-end; }
+.drawer {
+  width: min(520px, 100vw);
+  height: 100vh;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+  animation: slideIn .2s ease;
+}
+@keyframes slideIn {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+.drawer-close {
+  position: absolute; top: 18px; right: 18px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px;
+  cursor: pointer; color: var(--muted); font-size: 18px;
+  line-height: 1;
+  transition: all .15s;
+}
+.drawer-close:hover { color: var(--text); }
+.drawer-title { font-size: 18px; font-weight: 800; margin-top: 8px; }
+.drawer-sub { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+/* File list in drawer */
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+.file-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius);
+  background: var(--bg3); border: 1px solid var(--border);
+  cursor: pointer; transition: all .15s;
+}
+.file-item:hover { border-color: var(--accent); }
+.file-item.recommended { border-color: var(--green); }
+.fi-quant {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--accent); min-width: 70px;
+}
+.fi-quality {
+  font-size: 10px; padding: 2px 6px; border-radius: 99px;
+  font-family: var(--mono);
+}
+.fi-quality.balanced { background: rgba(79,158,255,.15); color: var(--accent); }
+.fi-quality.high { background: rgba(34,211,160,.15); color: var(--green); }
+.fi-quality.lossless { background: rgba(167,139,250,.15); color: var(--accent2); }
+.fi-quality.compressed { background: rgba(251,191,36,.12); color: var(--yellow); }
+.fi-quality.aggressive { background: rgba(248,113,113,.12); color: var(--red); }
+.fi-size { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+.fi-rec {
+  font-size: 9px; font-family: var(--mono);
+  color: var(--green); letter-spacing: 1px; text-transform: uppercase;
+}
+.fi-fits { font-size: 9px; color: var(--red); font-family: var(--mono); }
+
+/* -- SETTINGS FORM ----------------------------------- */
+.form-section { display: flex; flex-direction: column; gap: 14px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.form-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 9px 12px;
+  font-family: var(--mono); font-size: 13px; color: var(--text); outline: none;
+  transition: border .2s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-hint { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* -- PROGRESS BAR ------------------------------------ */
+.progress-bar {
+  width: 100%; height: 6px; background: var(--bg3);
+  border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 99px; transition: width .4s ease;
+}
+
+/* -- SYSTEM PANEL ------------------------------------ */
+.sys-panel-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-bottom: 24px;
+}
+.info-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.info-card h4 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--muted); margin-bottom: 10px; font-family: var(--mono);
+}
+.info-big {
+  font-size: 28px; font-weight: 800; font-family: var(--mono);
+  color: var(--accent); line-height: 1;
+}
+.info-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.info-bar {
+  margin-top: 10px; height: 4px; background: var(--bg3);
+  border-radius: 99px; overflow: hidden;
+}
+.info-bar-fill { height: 100%; border-radius: 99px; }
+.info-bar-fill.blue { background: var(--accent); }
+.info-bar-fill.purple { background: var(--accent2); }
+.info-bar-fill.green { background: var(--green); }
+
+.rec-box {
+  background: rgba(79,158,255,.07); border: 1px solid rgba(79,158,255,.3);
+  border-radius: var(--radius); padding: 14px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.rec-icon { font-size: 20px; }
+.rec-text { font-size: 13px; line-height: 1.5; }
+.rec-text strong { color: var(--accent); }
+
+/* -- EMPTY / LOADING --------------------------------- */
+.empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 60px 20px;
+  color: var(--muted); font-size: 14px;
+}
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* -- TOAST ------------------------------------------- */
+#toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 20px;
+  font-size: 13px; min-width: 240px;
+  transform: translateY(80px); opacity: 0;
+  transition: all .3s ease; pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: var(--green); color: var(--green); }
+#toast.error { border-color: var(--red); color: var(--red); }
+#toast.info { border-color: var(--accent); color: var(--accent); }
+
+/* Active model banner */
+.active-model-banner {
+  background: rgba(34,211,160,.07); border: 1px solid rgba(34,211,160,.3);
+  border-radius: var(--radius); padding: 10px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px; font-size: 13px;
+}
+.amb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse-dot 2s infinite; }
+.amb-text { flex: 1; }
+.amb-name { font-weight: 700; color: var(--green); }
+
+/* Download queue */
+.dl-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+}
+.dl-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+.dl-name { font-weight: 700; }
+.dl-pct { font-family: var(--mono); color: var(--accent); }
+.dl-speed { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-logo">Aria <span>LM</span></div>
+  <div id="backendBadge" class="topnav-badge">checking...</div>
+  <div id="gpuBadge" class="topnav-badge" style="display:none"></div>
+  <div class="topnav-sep"></div>
+  <a href="/" class="nav-home">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L2 9h3v9h4v-5h2v5h4V9h3L10 2z"/></svg>
+    Dashboard
+  </a>
+</nav>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Models</div>
+    <button class="sidebar-btn active" onclick="showPanel('local')" id="tab-local">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      My Models
+    </button>
+    <button class="sidebar-btn" onclick="showPanel('discover')" id="tab-discover">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+      Discover
+    </button>
+    <button class="sidebar-btn" onclick="showPanel('downloads')" id="tab-downloads">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      Downloads
+      <span id="dlCount" style="display:none;margin-left:auto;background:var(--yellow);color:#000;border-radius:99px;padding:1px 6px;font-size:10px;font-weight:700"></span>
+    </button>
+    <button class="sidebar-btn" onclick="showPanel('import')" id="tab-import">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+      Import Local
+    </button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    <button class="sidebar-btn" onclick="showPanel('system')" id="tab-system">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1zM11 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3zm2 2v-1h1v1h-1z" clip-rule="evenodd"/></svg>
+      Hardware
+    </button>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+
+  <!-- System mini-card -->
+  <div class="sys-card" id="sysMini">
+    <div class="sys-row"><span class="sys-label">Backend</span><span class="sys-value" id="sm-backend">&mdash;</span></div>
+    <div class="sys-row"><span class="sys-label">RAM free</span><span class="sys-value" id="sm-ram">&mdash;</span></div>
+    <div class="sys-row"><span class="sys-label">VRAM free</span><span class="sys-value" id="sm-vram">&mdash;</span></div>
+    <div class="sys-row"><span class="sys-label">Rec. quant</span><span class="sys-value green" id="sm-quant">&mdash;</span></div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- -- MY MODELS panel -- -->
+  <div class="panel active" id="panel-local">
+    <div class="page-title">My Models</div>
+    <div class="page-sub">Locally installed GGUF models. Click to load, inspect, or remove.</div>
+
+    <div id="activeBanner" class="active-model-banner" style="display:none">
+      <div class="amb-dot"></div>
+      <div class="amb-text">Active: <span class="amb-name" id="activeName"></span></div>
+      <button class="btn btn-ghost btn-sm" onclick="unloadModel()">Unload</button>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-box" type="text" id="localSearch" placeholder="Filter models..." oninput="filterLocalModels()">
+      <button class="btn btn-ghost" onclick="loadLocalModels()">&#8635; Refresh</button>
+    </div>
+
+    <div class="model-grid" id="localGrid">
+      <div class="empty"><div class="spinner"></div><p style="margin-top:12px">Loading models...</p></div>
+    </div>
+  </div>
+
+  <!-- -- DISCOVER panel -- -->
+  <div class="panel" id="panel-discover">
+    <div class="page-title">Discover Models</div>
+    <div class="page-sub">Browse HuggingFace Hub for GGUF models. Click to download.</div>
+
+    <div class="toolbar">
+      <input class="search-box" type="text" id="discoverSearch" placeholder="Search models (e.g. mistral, qwen, dolphin)...">
+      <button class="btn btn-primary" onclick="searchHF()">Search</button>
+    </div>
+
+    <div class="chip-bar" id="tagChips">
+      <div class="chip active" data-tag="" onclick="toggleTag(this)">All</div>
+      <div class="chip" data-tag="llama" onclick="toggleTag(this)">Llama</div>
+      <div class="chip" data-tag="mistral" onclick="toggleTag(this)">Mistral</div>
+      <div class="chip" data-tag="qwen" onclick="toggleTag(this)">Qwen</div>
+      <div class="chip" data-tag="phi" onclick="toggleTag(this)">Phi</div>
+      <div class="chip" data-tag="deepseek" onclick="toggleTag(this)">DeepSeek</div>
+      <div class="chip" data-tag="gemma" onclick="toggleTag(this)">Gemma</div>
+      <div class="chip" data-tag="coding" onclick="toggleTag(this)">Coding</div>
+      <div class="chip" data-tag="uncensored" onclick="toggleTag(this)">Uncensored</div>
+      <div class="chip" data-tag="fast" onclick="toggleTag(this)">Fast</div>
+      <div class="chip" data-tag="reasoning" onclick="toggleTag(this)">Reasoning</div>
+    </div>
+
+    <div class="model-grid" id="discoverGrid">
+      <div class="empty">Enter a search term or select a tag above</div>
+    </div>
+  </div>
+
+  <!-- -- DOWNLOADS panel -- -->
+  <div class="panel" id="panel-downloads">
+    <div class="page-title">Downloads</div>
+    <div class="page-sub">Active and recent model downloads.</div>
+    <div id="dlList"><div class="empty">No active downloads.</div></div>
+  </div>
+
+  <!-- -- IMPORT panel -- -->
+  <div class="panel" id="panel-import">
+    <div class="page-title">Import Local File</div>
+    <div class="page-sub">Register a .gguf model already on your disk. The file is not moved.</div>
+    <div style="max-width:480px">
+      <div class="form-section">
+        <div>
+          <div class="form-label">File Path</div>
+          <input class="form-input" type="text" id="importPath" placeholder="/path/to/model.gguf">
+          <div class="form-hint">Absolute path to the .gguf file on disk</div>
+        </div>
+        <div>
+          <div class="form-label">Display Name (optional)</div>
+          <input class="form-input" type="text" id="importName" placeholder="My Custom Model">
+        </div>
+        <div>
+          <div class="form-label">Description (optional)</div>
+          <input class="form-input" type="text" id="importDesc" placeholder="">
+        </div>
+        <button class="btn btn-primary" onclick="importLocal()" style="width:100%">Register Model</button>
+      </div>
+      <hr class="divider">
+      <div class="page-sub" style="margin:0 0 8px">HuggingFace Token (for gated models)</div>
+      <div class="form-section">
+        <div>
+          <div class="form-label">HF Token</div>
+          <input class="form-input" type="password" id="hfToken" placeholder="hf_...">
+          <div class="form-hint">Get from huggingface.co/settings/tokens &mdash; needed only for restricted models</div>
+        </div>
+        <button class="btn btn-ghost" onclick="saveHfToken()">Save Token</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- -- SYSTEM panel -- -->
+  <div class="panel" id="panel-system">
+    <div class="page-title">Hardware Capabilities</div>
+    <div class="page-sub">Live system analysis used to allocate GPU layers and recommend quantisation.</div>
+    <div class="sys-panel-grid" id="sysGrid">
+      <div class="info-card"><h4>Loading...</h4></div>
+    </div>
+    <div id="recBox"></div>
+  </div>
+
+</main>
+</div>
+
+<!-- -- DETAIL DRAWER -- -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+  <div class="drawer" id="drawer">
+    <button class="drawer-close" onclick="closeDrawer()">&#10005;</button>
+    <div id="drawerContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// --- State ----------------------------------------------------
+let localModels    = [];
+let discoverResults = [];
+let systemCaps     = {};
+let activeModel    = "";
+let selectedTag    = "";
+let dlPollTimer    = null;
+
+// --- Panel navigation -----------------------------------------
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'system') loadSystem();
+  if (name === 'downloads') loadDownloads();
+  if (name === 'local') loadLocalModels();
+  if (name === 'discover') { if (!discoverResults.length) searchHF(); }
+}
+
+// --- Toast ----------------------------------------------------
+let toastTimer;
+function toast(msg, type='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3000);
+}
+
+// --- API helpers ----------------------------------------------
+async function api(path, opts={}) {
+  const r = await fetch(path, {
+    headers: {'Content-Type':'application/json'},
+    ...opts
+  });
+  return r.json();
+}
+
+// --- Local models ---------------------------------------------
+async function loadLocalModels() {
+  const grid = document.getElementById('localGrid');
+  grid.innerHTML = '<div class="empty"><div class="spinner"></div><p style="margin-top:12px">Loading...</p></div>';
+  try {
+    const data = await api('/api/hf/models');
+    if (data.error) {
+      showInstallBanner(typeof data.error === 'object'
+        ? (data.error.reason || JSON.stringify(data.error))
+        : data.error);
+      document.getElementById('backendBadge').textContent = 'backend not ready';
+      document.getElementById('backendBadge').className   = 'topnav-badge yellow';
+      return;
+    }
+    localModels  = data.models || [];
+    activeModel  = data.active_model || '';
+    document.getElementById('backendBadge').textContent =
+      `llama-cpp &middot; ${localModels.length} model${localModels.length!==1?'s':''}`;
+    document.getElementById('backendBadge').className = 'topnav-badge green';
+    renderLocalGrid();
+    updateActiveBanner();
+  } catch(e) {
+    grid.innerHTML = `<div class="empty" style="color:var(--red)">Error: ${e.message}</div>`;
+  }
+}
+
+function renderLocalGrid() {
+  const q    = document.getElementById('localSearch').value.toLowerCase();
+  const models = localModels.filter(m =>
+    !q || m.name.toLowerCase().includes(q) || (m.family||'').includes(q)
+  );
+  const grid = document.getElementById('localGrid');
+  if (!models.length) {
+    grid.innerHTML = '<div class="empty">No models installed yet. Go to <b>Discover</b> to download one.</div>';
+    return;
+  }
+  grid.innerHTML = models.map(m => modelCard(m, true)).join('');
+}
+
+function filterLocalModels() { renderLocalGrid(); }
+
+function modelCard(m, isLocal) {
+  const isActive  = m.id === activeModel;
+  const sizeStr   = m.size_gb ? `${m.size_gb} GB` : '&mdash;';
+  const status    = m.status || 'not_downloaded';
+  const tags      = (m.tags || []).slice(0, 4);
+  const tagHtml   = tags.map(t => `<span class="mc-tag ${tagClass(t)}">${t}</span>`).join('');
+  const activeDot = isActive ? '<div class="mc-active-dot"></div>' : '';
+
+  return `<div class="model-card ${isActive?'active-card':''}" onclick="openModelDrawer(${JSON.stringify(JSON.stringify(m))}, ${isLocal})">
+    ${activeDot}
+    <div class="mc-header">
+      <div class="mc-name">${m.name}</div>
+      <div class="mc-param">${m.parameter_size || m.param_size || ''}</div>
+    </div>
+    <div class="mc-family">${m.family || 'unknown'}</div>
+    <div class="mc-tags">${tagHtml}</div>
+    <div class="mc-footer">
+      <span class="mc-size">${sizeStr}</span>
+      <span class="mc-status ${status}">${status}</span>
+    </div>
+  </div>`;
+}
+
+function tagClass(t) {
+  if (['coding','code'].includes(t)) return 'code';
+  if (['uncensored','dolphin'].includes(t)) return 'uncensored';
+  if (['fast','ultra-fast','edge'].includes(t)) return 'fast';
+  if (['reasoning','math'].includes(t)) return 'reasoning';
+  return '';
+}
+
+function updateActiveBanner() {
+  const banner = document.getElementById('activeBanner');
+  if (activeModel) {
+    const rec = localModels.find(m => m.id === activeModel);
+    document.getElementById('activeName').textContent = rec ? rec.name : activeModel;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// --- Drawer ---------------------------------------------------
+async function openModelDrawer(mJson, isLocal) {
+  const m = JSON.parse(mJson);
+  const overlay = document.getElementById('drawerOverlay');
+  overlay.classList.add('open');
+
+  if (isLocal) {
+    renderLocalDrawer(m);
+  } else {
+    renderDiscoverDrawer(m);
+  }
+}
+
+function closeDrawer(evt) {
+  if (evt && evt.target !== document.getElementById('drawerOverlay')) return;
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+
+function renderLocalDrawer(m) {
+  const isActive = m.id === activeModel;
+  document.getElementById('drawerContent').innerHTML = `
+    <div class="drawer-title">${m.name}</div>
+    <div class="drawer-sub">${m.repo_id} / ${m.filename}</div>
+    <hr class="divider">
+    <div class="form-section">
+      <div class="form-row">
+        <div><div class="form-label">Size</div><div class="form-input" style="cursor:default">${m.size_gb} GB</div></div>
+        <div><div class="form-label">Quant</div><div class="form-input" style="cursor:default">${m.quant||'&mdash;'}</div></div>
+      </div>
+      <div class="form-row">
+        <div>
+          <div class="form-label">GPU Layers</div>
+          <input class="form-input" type="number" id="dlGpuLayers" value="${m.gpu_layers??-1}" min="-1" max="200">
+          <div class="form-hint">-1 = auto (all in GPU)</div>
+        </div>
+        <div>
+          <div class="form-label">Context Length</div>
+          <input class="form-input" type="number" id="dlCtx" value="${m.context_len||4096}" min="512" max="131072" step="512">
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="saveModelSettings('${m.id}')">Save Settings</button>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      ${isActive
+        ? `<button class="btn btn-ghost" onclick="unloadModel()">&#9209; Unload</button>`
+        : `<button class="btn btn-green" onclick="loadModel('${m.id}')">&#9654; Load Model</button>`
+      }
+      <button class="btn btn-danger" onclick="removeModel('${m.id}')">&#128465; Remove</button>
+    </div>
+  `;
+}
+
+async function renderDiscoverDrawer(m) {
+  const content = document.getElementById('drawerContent');
+  content.innerHTML = `
+    <div class="drawer-title">${m.name}</div>
+    <div class="drawer-sub">${m.repo_id}</div>
+    <div style="margin:8px 0;display:flex;gap:6px;flex-wrap:wrap">
+      ${(m.tags||[]).map(t=>`<span class="mc-tag ${tagClass(t)}">${t}</span>`).join('')}
+    </div>
+    <hr class="divider">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Select a quantisation to download:</div>
+    <div class="file-list" id="fileList"><div class="spinner"></div></div>
+  `;
+  try {
+    const data = await api(`/api/hf/repo/files?repo_id=${encodeURIComponent(m.repo_id)}`);
+    const files = data.files || [];
+    if (!files.length) {
+      document.getElementById('fileList').innerHTML = '<div style="color:var(--muted);font-size:13px">No GGUF files found in this repo.</div>';
+      return;
+    }
+    document.getElementById('fileList').innerHTML = files.map(f => `
+      <div class="file-item ${f.recommended?'recommended':''}" onclick="startDownload('${m.repo_id}','${f.filename}','${m.name}')">
+        <div class="fi-quant">${f.quant}</div>
+        <div class="fi-quality ${f.quality}">${f.quality}</div>
+        <div style="flex:1">
+          ${f.recommended ? `<div class="fi-rec">&#10003; Recommended</div>` : ''}
+          ${!f.fits ? `<div class="fi-fits">&#9888; May not fit in memory</div>` : ''}
+        </div>
+        <div class="fi-size">${f.size_gb ? f.size_gb + ' GB' : '&mdash;'}</div>
+        <button class="btn btn-primary btn-sm" style="margin-left:8px">&#8595;</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('fileList').innerHTML = `<div style="color:var(--red)">Error: ${e.message}</div>`;
+  }
+}
+
+// --- Model operations -----------------------------------------
+async function loadModel(modelId) {
+  toast('Loading model...', 'info');
+  const r = await api('/api/hf/load', {
+    method:'POST', body: JSON.stringify({model_id: modelId})
+  });
+  if (r.ok) {
+    toast(`&#10003; Model loaded (${r.mode})`, 'success');
+    activeModel = modelId;
+    updateActiveBanner();
+    loadLocalModels();
+    document.getElementById('drawerOverlay').classList.remove('open');
+  } else {
+    toast(`&#10007; ${r.error}`, 'error');
+  }
+}
+
+async function unloadModel() {
+  await api('/api/hf/unload', {method:'POST'});
+  toast('Model unloaded', 'info');
+  activeModel = '';
+  updateActiveBanner();
+  loadLocalModels();
+}
+
+async function removeModel(modelId) {
+  if (!confirm('Remove this model from the registry? (File will NOT be deleted)')) return;
+  const r = await api('/api/hf/remove', {
+    method:'POST', body: JSON.stringify({model_id: modelId, delete_file: false})
+  });
+  if (r.ok) {
+    toast('Model removed', 'info');
+    document.getElementById('drawerOverlay').classList.remove('open');
+    loadLocalModels();
+  } else toast('Error: ' + r.error, 'error');
+}
+
+async function saveModelSettings(modelId) {
+  const gpu_layers  = parseInt(document.getElementById('dlGpuLayers').value);
+  const context_len = parseInt(document.getElementById('dlCtx').value);
+  const r = await api('/api/hf/settings', {
+    method:'POST', body: JSON.stringify({model_id: modelId, gpu_layers, context_len})
+  });
+  toast(r.ok ? 'Settings saved' : 'Error: ' + r.error, r.ok ? 'success' : 'error');
+}
+
+// --- Discover / Search ----------------------------------------
+async function searchHF() {
+  const q   = document.getElementById('discoverSearch').value;
+  const tag = selectedTag;
+  const grid = document.getElementById('discoverGrid');
+  grid.innerHTML = '<div class="empty"><div class="spinner"></div><p style="margin-top:12px">Searching...</p></div>';
+
+  const params = new URLSearchParams({q, limit:40});
+  if (tag) params.set('tags', tag);
+  const data = await api('/api/hf/search?' + params);
+  discoverResults = data.results || [];
+
+  if (!discoverResults.length) {
+    grid.innerHTML = '<div class="empty">No results found. Try a different search or tag.</div>';
+    return;
+  }
+  grid.innerHTML = discoverResults.map(m => {
+    const dlBadge = m.downloaded
+      ? '<span class="mc-status ready" style="font-size:10px">Installed</span>'
+      : '<span class="mc-status not_downloaded" style="font-size:10px">Not installed</span>';
+    const tags = (m.tags||[]).slice(0,4);
+    return `<div class="model-card" onclick="openModelDrawer(${JSON.stringify(JSON.stringify(m))}, false)">
+      <div class="mc-header">
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-param">${m.param_size||''}</div>
+      </div>
+      <div class="mc-family">${m.family}</div>
+      <div class="mc-tags">${tags.map(t=>`<span class="mc-tag ${tagClass(t)}">${t}</span>`).join('')}</div>
+      <div class="mc-footer">
+        <span class="mc-size">&#129303; ${m.repo_id.split('/')[0]}</span>
+        ${dlBadge}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTag(el) {
+  document.querySelectorAll('#tagChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedTag = el.dataset.tag;
+  searchHF();
+}
+
+// --- Download -------------------------------------------------
+async function startDownload(repoId, filename, name) {
+  const hfToken = document.getElementById('hfToken')?.value || '';
+  const r = await api('/api/hf/download', {
+    method:'POST',
+    body: JSON.stringify({repo_id: repoId, filename, hf_token: hfToken, name})
+  });
+  if (r.task_id) {
+    toast(`Download started: ${filename}`, 'info');
+    document.getElementById('drawerOverlay').classList.remove('open');
+    showPanel('downloads');
+    startDlPoll();
+  } else {
+    toast('Failed to start download', 'error');
+  }
+}
+
+async function loadDownloads() {
+  const data = await api('/api/hf/downloads');
+  const items = data.downloads || [];
+  const el   = document.getElementById('dlList');
+  const badge = document.getElementById('dlCount');
+  const active = items.filter(d => d.status === 'downloading' || d.status === 'queued');
+
+  if (active.length) {
+    badge.textContent = active.length; badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">No active downloads.</div>';
+    return;
+  }
+  el.innerHTML = items.map(d => {
+    const pct   = d.progress || 0;
+    const speed = d.speed_mbps ? `${d.speed_mbps} MB/s` : '';
+    const mb    = d.downloaded ? `${(d.downloaded/1024**2).toFixed(1)} MB` : '';
+    const color = d.status==='done' ? 'var(--green)' : d.status==='error' ? 'var(--red)' : 'var(--accent)';
+    return `<div class="dl-item">
+      <div class="dl-header">
+        <div class="dl-name">${d.filename || d.task_id}</div>
+        <div class="dl-pct" style="color:${color}">${d.status==='done'?'Done':d.status==='error'?'Error':pct+'%'}</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${d.status==='error' ? `<div class="form-hint" style="color:var(--red);margin-top:6px">${d.error}</div>` : ''}
+      <div class="dl-speed">${d.repo_id} &bull; ${mb} ${speed}</div>
+    </div>`;
+  }).join('');
+
+  if (active.length && !dlPollTimer) startDlPoll();
+  if (!active.length && dlPollTimer) { clearInterval(dlPollTimer); dlPollTimer = null; }
+}
+
+function startDlPoll() {
+  if (dlPollTimer) return;
+  dlPollTimer = setInterval(loadDownloads, 2000);
+}
+
+// --- Import local ---------------------------------------------
+async function importLocal() {
+  const path = document.getElementById('importPath').value.trim();
+  if (!path) { toast('Enter a file path', 'error'); return; }
+  const r = await api('/api/hf/import', {
+    method:'POST',
+    body: JSON.stringify({
+      file_path: path,
+      name:  document.getElementById('importName').value,
+      description: document.getElementById('importDesc').value,
+    })
+  });
+  if (r.ok) {
+    toast(`Registered! (${r.size_gb} GB)`, 'success');
+    document.getElementById('importPath').value = '';
+    showPanel('local');
+  } else toast('Error: ' + r.error, 'error');
+}
+
+async function saveHfToken() {
+  const token = document.getElementById('hfToken').value;
+  // Save to preferences (the token is used by download endpoint via cfg.HF_TOKEN)
+  await api('/api/settings', {method:'POST', body: JSON.stringify({key:'hf_token', value: token})});
+  toast('HF Token saved', 'success');
+}
+
+// --- System panel ---------------------------------------------
+async function loadSystem() {
+  const grid = document.getElementById('sysGrid');
+  grid.innerHTML = '<div class="info-card"><h4>Analysing hardware...</h4><div class="spinner" style="margin-top:12px"></div></div>';
+  try {
+    systemCaps = await api('/api/hf/system');
+    renderSystem();
+  } catch(e) {
+    grid.innerHTML = `<div class="info-card" style="grid-column:1/-1"><h4>Error</h4><p>${e.message}</p></div>`;
+  }
+}
+
+function renderSystem() {
+  const c = systemCaps;
+  const ramPct  = c.ram_total_gb ? Math.round((1 - c.ram_available_gb/c.ram_total_gb)*100) : 0;
+  const vramPct = c.vram_total_gb ? Math.round((1 - c.vram_free_gb/c.vram_total_gb)*100) : 0;
+
+  document.getElementById('sysGrid').innerHTML = `
+    <div class="info-card">
+      <h4>CPU</h4>
+      <div class="info-big">${c.cpu_threads}</div>
+      <div class="info-sub">threads (${c.cpu_cores} cores)</div>
+      <div class="info-sub" style="margin-top:4px;font-size:11px">${c.cpu_name||'Unknown'}</div>
+      <div class="form-hint" style="margin-top:8px">Inference threads: ${c.inference_threads}</div>
+    </div>
+    <div class="info-card">
+      <h4>System RAM</h4>
+      <div class="info-big">${c.ram_total_gb} <span style="font-size:14px;color:var(--muted)">GB</span></div>
+      <div class="info-sub">${c.ram_available_gb} GB free</div>
+      <div class="info-bar" style="margin-top:10px">
+        <div class="info-bar-fill blue" style="width:${ramPct}%"></div>
+      </div>
+    </div>
+    <div class="info-card">
+      <h4>GPU / VRAM</h4>
+      ${c.gpu_available ? `
+        <div class="info-big">${c.vram_total_gb} <span style="font-size:14px;color:var(--muted)">GB</span></div>
+        <div class="info-sub">${c.vram_free_gb} GB free &middot; ${c.gpu_name||'Unknown'}</div>
+        <div class="info-bar" style="margin-top:10px">
+          <div class="info-bar-fill ${c.cuda_available?'green':'purple'}" style="width:${vramPct}%"></div>
+        </div>
+        <div class="form-hint" style="margin-top:8px">
+          ${c.cuda_available ? '&#129026; CUDA (NVIDIA)' : c.metal_available ? '&#129027; Metal (Apple)' : 'GPU detected'}
+          &middot; Est. max layers: ${c.gpu_layers_max}
+        </div>
+      ` : `
+        <div class="info-sub" style="padding:12px 0;color:var(--muted)">No GPU detected &mdash; CPU inference only</div>
+      `}
+    </div>
+    <div class="info-card">
+      <h4>Recommendation</h4>
+      <div class="info-big" style="color:var(--green);font-size:22px">${c.recommended_quant}</div>
+      <div class="info-sub">Optimal quantisation for this hardware</div>
+      <div class="form-hint" style="margin-top:8px">Max model size: ~${c.max_model_size_gb} GB</div>
+    </div>
+  `;
+
+  document.getElementById('recBox').innerHTML = `
+    <div class="rec-box">
+      <div class="rec-icon">&#128161;</div>
+      <div class="rec-text">
+        Based on your hardware, we recommend downloading <strong>${c.recommended_quant}</strong> quantised models.
+        ${c.gpu_available
+          ? `Your ${c.gpu_name||'GPU'} can offload up to <strong>${c.gpu_layers_max} layers</strong> for fast inference.`
+          : 'Inference will run on CPU &mdash; expect slower speeds. A GPU will dramatically improve performance.'}
+        Maximum recommended model size: <strong>${c.max_model_size_gb} GB</strong>.
+      </div>
+    </div>
+  `;
+
+  // Update sidebar mini-card
+  document.getElementById('sm-ram').textContent   = `${c.ram_available_gb} GB`;
+  document.getElementById('sm-vram').textContent  = c.gpu_available ? `${c.vram_free_gb} GB` : 'None';
+  document.getElementById('sm-quant').textContent = c.recommended_quant;
+}
+
+// --- Install banner (shown when backend not ready) ------------
+function showInstallBanner(reason) {
+  const grid = document.getElementById('localGrid');
+  grid.innerHTML = `
+    <div class="empty" style="grid-column:1/-1;text-align:left;padding:30px">
+      <div style="font-size:18px;font-weight:800;margin-bottom:12px;color:var(--yellow)">
+        &#9888; Local backend not ready
+      </div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.7">
+        ${reason || 'llama-cpp-python is not installed.'}<br>
+        You can still <strong>discover</strong> and <strong>download</strong> models from HuggingFace.
+        They will be ready to use once llama-cpp-python is installed.
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:var(--mono);font-size:12px;margin-bottom:16px">
+        <div style="color:var(--muted);margin-bottom:8px"># Run one of these in your terminal:</div>
+        <div style="color:var(--green);margin-bottom:4px">pip install llama-cpp-python --only-binary :all: --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu</div>
+        <div style="color:var(--muted);margin:8px 0"># NVIDIA GPU:</div>
+        <div style="color:var(--accent)">pip install llama-cpp-python --only-binary :all: --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu122</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="loadLocalModels()">&#8635; Check Again</button>
+        <button class="btn btn-ghost" onclick="showPanel('discover')">&#128269; Browse Models</button>
+      </div>
+    </div>`;
+}
+
+// --- Init -----------------------------------------------------
+async function init() {
+  const badge = document.getElementById('backendBadge');
+
+  // Load backend + system status
+  try {
+    const [modelsResp, sysResp] = await Promise.allSettled([
+      api('/api/hf/models'),
+      api('/api/hf/system'),
+    ]);
+
+    // System caps (always try)
+    if (sysResp.status === 'fulfilled') {
+      systemCaps = sysResp.value;
+      renderSystem();
+      const be = systemCaps.cuda_available ? 'CUDA' : systemCaps.metal_available ? 'Metal' : 'CPU';
+      document.getElementById('sm-backend').textContent = be;
+      if (systemCaps.gpu_available) {
+        const gpuBadge = document.getElementById('gpuBadge');
+        gpuBadge.textContent = `${systemCaps.gpu_name||'GPU'} &middot; ${systemCaps.vram_total_gb} GB`;
+        gpuBadge.className   = 'topnav-badge green';
+        gpuBadge.style.display = 'block';
+      }
+    }
+
+    // Models
+    if (modelsResp.status === 'fulfilled') {
+      const status = modelsResp.value;
+      if (status.error) {
+        // Backend unavailable &mdash; show install banner
+        badge.textContent = 'backend not ready';
+        badge.className   = 'topnav-badge yellow';
+        showInstallBanner(
+          typeof status.error === 'object'
+            ? (status.error.reason || JSON.stringify(status.error))
+            : status.error
+        );
+      } else {
+        const models = status.models || [];
+        badge.textContent = `llama-cpp &middot; ${models.length} model${models.length!==1?'s':''}`;
+        badge.className   = 'topnav-badge green';
+        activeModel = status.active_model || '';
+        localModels = models;
+        renderLocalGrid();
+        updateActiveBanner();
+      }
+    } else {
+      badge.textContent = 'server error';
+      badge.className   = 'topnav-badge red';
+    }
+  } catch(e) {
+    badge.textContent = 'cannot connect';
+    badge.className   = 'topnav-badge red';
+    document.getElementById('localGrid').innerHTML =
+      `<div class="empty">Cannot reach Aria server.<br>Make sure <code>python main.py</code> is running.</div>`;
+  }
+
+  startDlPoll();
+}
+
+init();
+</script>
+</body>
+</html>

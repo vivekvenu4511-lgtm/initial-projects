@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title id="page-tab-title">Aria Dashboard</title>
+<!-- Marked for markdown rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- Highlight.js for code blocks -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+:root{
+  --bg:#edfbf3;--panel:#ffffff;--panel-2:#f4fdf8;--line:#c3edd7;--line-2:#94d9b8;
+  --text:#0f2d1f;--muted:#4a7a62;--accent:#10b981;--accent-2:#059669;--accent-3:#d1fae5;
+  --purple:#8b5cf6;--blue:#3b82f6;--amber:#f59e0b;--rose:#f43f5e;
+  --warning:#d97706;--danger:#dc2626;--ok:#16a34a;
+  --shadow:0 4px 16px rgba(16,185,129,.10);--shadow-lg:0 8px 28px rgba(16,185,129,.13);
+  --radius:12px;--radius-sm:8px;--sidebar-w:230px;--topbar-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);}
+button,input,select,textarea{font:inherit;color:inherit;}
+button{cursor:pointer;}
+a{color:var(--accent-2);text-decoration:none;}
+
+.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:100vh;overflow:hidden;}
+.sidebar{background:linear-gradient(180deg,#f0fdf7 0%,#ffffff 100%);border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.brand{padding:14px 16px 10px;background:linear-gradient(135deg,#d1fae5 0%,#a7f3d0 100%);border-bottom:1px solid var(--line);flex-shrink:0;}
+.brand-title{font-size:22px;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#059669,#0284c7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.brand-sub{color:var(--muted);font-size:11px;margin-top:2px;font-weight:500;}
+.sidebar-inner{flex:1;overflow-y:auto;padding:10px 10px 8px;display:flex;flex-direction:column;gap:8px;}
+.nav{display:grid;gap:2px;}
+.nav button{text-align:left;background:transparent;border:1px solid transparent;color:var(--muted);border-radius:var(--radius-sm);padding:9px 11px;font-size:13px;font-weight:500;transition:all .12s;display:flex;align-items:center;gap:8px;}
+.nav button:hover{background:#edfbf3;color:var(--text);}
+.nav button.active{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-color:var(--line-2);color:var(--accent-2);font-weight:700;box-shadow:var(--shadow);}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px;}
+.scard h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:7px;}
+.srow{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);padding:3px 0;font-weight:500;}
+.dot{width:8px;height:8px;border-radius:999px;background:#cbd5e1;flex-shrink:0;}
+.dot.ok{background:var(--ok);}
+.dot.warn{background:var(--warning);}
+.dot.bad{background:var(--danger);}
+.dot.pulse{animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.latency-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:999px;font-weight:600;}
+.lat-ok{background:#dcfce7;color:#166534;}.lat-warn{background:#fef3c7;color:#92400e;}.lat-bad{background:#fee2e2;color:#991b1b;}
+.main{display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;}
+.topbar{flex-shrink:0;height:var(--topbar-h);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar h1{font-size:17px;font-weight:700;letter-spacing:-.02em;}
+.topbar-sub{font-size:12px;color:var(--muted);}
+.top-actions{display:flex;gap:7px;}
+.btn{border:1px solid var(--line-2);background:#fff;color:var(--accent-2);border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;font-weight:600;transition:all .12s;white-space:nowrap;}
+.btn:hover{background:var(--accent-3);border-color:var(--accent);}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn.primary:hover{background:var(--accent-2);}
+.btn.ghost{background:#f0fdf4;}
+.btn.danger{background:#fff;color:var(--danger);border-color:#fca5a5;}
+.btn.danger:hover{background:#fee2e2;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn.sm{padding:4px 9px;font-size:11px;}
+.btn.intel{background:linear-gradient(135deg,#6d28d9,#2563eb);color:#fff;border:none;}
+.btn.intel:hover{background:linear-gradient(135deg,#5b21b6,#1d4ed8);}
+.btn.intel.active{box-shadow:0 0 0 3px rgba(109,40,217,.3);}
+.page{flex:1;overflow-y:auto;display:none;padding:12px;gap:10px;align-content:start;}
+.page.active{display:grid;}
+#startup-overlay{position:fixed;inset:0;background:rgba(240,253,247,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px;}
+#startup-overlay.hidden{display:none;}
+.spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.startup-msg{font-size:15px;font-weight:600;}
+.startup-sub{font-size:13px;color:var(--muted);}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,#f8fffe,#f0fdf4);}
+.card-header h3{font-size:13px;font-weight:700;letter-spacing:-.01em;}
+.card-body{padding:12px;}
+.grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:10px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.stack{display:flex;flex-direction:column;gap:8px;}
+.field{display:grid;gap:4px;}
+.field label,.field-stack label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.field-stack{display:grid;gap:4px;}
+.input,.select,.textarea{width:100%;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;transition:border-color .12s;}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(16,185,129,.15);}
+.textarea{min-height:70px;resize:vertical;}
+
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.chat-toolbar{flex-shrink:0;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--panel-2);}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;background:linear-gradient(180deg,#ffffff,#f8fffe);min-height:0;}
+.message{display:grid;gap:4px;margin-bottom:16px;}
+.message.user{justify-items:end;}
+.bubble{max-width:min(820px,90%);padding:11px 16px;border-radius:16px;line-height:1.6;border:1px solid var(--line);background:#fff;font-size:13.5px;}
+.message.user .bubble{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-color:#10b981;}
+/* Markdown rendering inside bubbles */
+.bubble h1,.bubble h2,.bubble h3{font-weight:700;margin:10px 0 6px;line-height:1.3;}
+.bubble h1{font-size:17px;}.bubble h2{font-size:15px;}.bubble h3{font-size:14px;}
+.bubble p{margin-bottom:8px;}.bubble p:last-child{margin-bottom:0;}
+.bubble ul,.bubble ol{padding-left:20px;margin-bottom:8px;}
+.bubble li{margin-bottom:3px;}
+.bubble strong{font-weight:700;}
+.bubble em{font-style:italic;}
+.bubble code{background:#f0fdf4;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:ui-monospace,monospace;font-size:12px;}
+.message.user .bubble code{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3);}
+.bubble pre{background:#0a1f15;border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;}
+.bubble pre code{background:none;border:none;color:#6ee7b7;font-size:12px;padding:0;}
+.bubble table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.5px;}
+.bubble th{background:#f0fdf4;border:1px solid var(--line);padding:7px 10px;font-weight:700;text-align:left;}
+.bubble td{border:1px solid var(--line);padding:6px 10px;}
+.bubble tr:nth-child(even) td{background:#f8fffe;}
+.bubble blockquote{border-left:3px solid var(--accent);padding-left:12px;color:var(--muted);margin:8px 0;font-style:italic;}
+.bubble hr{border:none;border-top:1px solid var(--line);margin:10px 0;}
+.meta{font-size:10px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.meta span{background:#f0fdf4;padding:1px 6px;border-radius:999px;border:1px solid var(--line);}
+.download-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.download-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--accent);background:linear-gradient(135deg,#d1fae5,#a7f3d0);font-size:12px;color:var(--accent-2);font-weight:700;text-decoration:none;transition:all .12s;}
+.download-btn:hover{background:linear-gradient(135deg,#a7f3d0,#6ee7b7);transform:translateY(-1px);box-shadow:var(--shadow);}
+.download-btn .dl-icon{font-size:16px;}
+
+/* ── THINKING STEPS ── */
+.thinking-block{margin:6px 0;border:1px solid #dbeafe;border-radius:10px;overflow:hidden;}
+.thinking-header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:linear-gradient(135deg,#eff6ff,#dbeafe);cursor:pointer;font-size:12px;font-weight:600;color:#1e40af;}
+.thinking-header:hover{background:#dbeafe;}
+.thinking-chevron{margin-left:auto;transition:transform .2s;}
+.thinking-header.open .thinking-chevron{transform:rotate(90deg);}
+.thinking-steps-list{display:none;padding:8px 12px;background:#f8faff;border-top:1px solid #dbeafe;}
+.thinking-header.open+.thinking-steps-list{display:block;}
+.thinking-step{display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:11.5px;color:#374151;border-bottom:1px solid #e0eaff;}
+.thinking-step:last-child{border-bottom:none;}
+.thinking-step-icon{flex-shrink:0;font-size:14px;}
+.thinking-step-detail{color:#6b7280;font-size:10.5px;margin-top:1px;}
+.intel-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#5b21b6;border:1px solid #c4b5fd;border-radius:999px;font-size:10px;font-weight:700;padding:2px 8px;}
+
+/* ── CHAT COMPOSE ── */
+.chat-compose{flex-shrink:0;padding:10px 12px;border-top:1px solid var(--line);background:var(--panel);}
+.compose-row{display:flex;gap:8px;align-items:flex-end;}
+.compose-textarea{flex:1;min-height:56px;max-height:180px;resize:none;border:1.5px solid var(--line-2);border-radius:12px;padding:10px 14px;font-size:13.5px;background:var(--panel-2);transition:border-color .12s;}
+.compose-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(16,185,129,.12);}
+.compose-side{display:flex;flex-direction:column;gap:6px;}
+.compose-actions-row{display:flex;gap:6px;align-items:center;margin-top:6px;}
+.btn-icon{width:36px;height:36px;border-radius:8px;border:1px solid var(--line-2);background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .12s;}
+.btn-icon:hover{background:var(--accent-3);}
+.btn-icon.recording{background:#fee2e2;border-color:#fca5a5;animation:pulse 1s infinite;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:24px;margin-bottom:6px;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:#d1fae5;border:1px solid var(--line-2);font-size:11px;font-weight:600;}
+.chip button{border:none;background:transparent;color:var(--muted);padding:0;font-size:13px;line-height:1;}
+.conn-bar{display:flex;gap:6px;padding:6px 10px;background:var(--panel-2);border-bottom:1px solid var(--line);flex-shrink:0;overflow-x:auto;}
+.conn-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.conn-pill.ok{border-color:#bbf7d0;background:#f0fdf4;}.conn-pill.warn{border-color:#fde68a;background:#fefce8;}.conn-pill.bad{border-color:#fecdd3;background:#fff1f2;}
+
+/* ── VOICE WAVE ── */
+.voice-wave{display:inline-flex;align-items:center;gap:2px;height:20px;}
+.voice-wave span{width:3px;background:var(--accent);border-radius:2px;animation:wave 1s ease-in-out infinite;}
+.voice-wave span:nth-child(2){animation-delay:.1s;}.voice-wave span:nth-child(3){animation-delay:.2s;}.voice-wave span:nth-child(4){animation-delay:.1s;}
+@keyframes wave{0%,100%{height:4px;}50%{height:18px;}}
+
+/* ── SPEAKING INDICATOR ── */
+.speaking-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#d1fae5;border:1px solid var(--line-2);font-size:11px;font-weight:600;color:var(--accent-2);}
+
+/* ── MODE TOOLBAR ── */
+.mode-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.mode-toolbar .field-stack{min-width:140px;}
+.mode-toolbar label{font-size:10px;}
+.hybrid-strip{display:flex;align-items:center;gap:8px;padding:5px 10px;background:linear-gradient(135deg,#ecfdf5,#eff6ff);border:1px solid #a7f3d0;border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--text);}
+
+/* ── LISTS ── */
+.list{display:flex;flex-direction:column;gap:7px;}
+.item{border:1px solid var(--line);background:var(--panel-2);border-radius:var(--radius-sm);padding:10px;}
+.item-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:4px;}
+.item-title{font-weight:700;font-size:13px;}
+.item-sub{color:var(--muted);font-size:11px;margin-top:2px;}
+.item-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid var(--line);background:#fff;text-transform:uppercase;letter-spacing:.04em;}
+.badge.pending{color:#92400e;background:#fef3c7;border-color:#fde68a;}.badge.running{color:#075985;background:#e0f2fe;border-color:#bae6fd;}
+.badge.done{color:#166534;background:#dcfce7;border-color:#bbf7d0;}.badge.failed{color:#991b1b;background:#fee2e2;border-color:#fecdd3;}
+.badge.high{color:#991b1b;background:#fee2e2;border-color:#fecdd3;}.badge.normal{color:#166534;background:#dcfce7;border-color:#bbf7d0;}.badge.low{color:#6b7280;background:#f9fafb;border-color:#e2e8f0;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.mini-card{border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px;background:var(--panel-2);position:relative;overflow:hidden;}
+.mini-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.mini-card.local::before{background:linear-gradient(90deg,#10b981,#6ee7b7);}
+.mini-card.cloud::before{background:linear-gradient(90deg,#3b82f6,#93c5fd);}
+.mini-card h4{font-size:12px;font-weight:700;margin-bottom:7px;}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;font-size:11px;}
+.kv .kv-k{color:var(--muted);font-weight:600;}.kv .kv-v{color:var(--text);}
+.strength-tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid;margin:2px;}
+.st-general{background:#d1fae5;color:#065f46;border-color:#6ee7b7;}
+.st-coding{background:#dbeafe;color:#1e40af;border-color:#93c5fd;}
+.st-reasoning{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
+.st-fast{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+.st-creative{background:#fce7f3;color:#9d174d;border-color:#fbcfe8;}
+.st-multilingual{background:#e0f2fe;color:#075985;border-color:#bae6fd;}
+.st-math{background:#f3e8ff;color:#6b21a8;border-color:#e9d5ff;}
+.st-analysis{background:#ecfdf5;color:#064e35;border-color:#a7f3d0;}
+pre.output{margin:0;white-space:pre-wrap;background:#0a1f15;color:#6ee7b7;padding:10px;border-radius:var(--radius-sm);min-height:80px;font-size:11px;}
+.toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+.toast{background:linear-gradient(135deg,#064e35,#065f46);color:#fff;border-radius:var(--radius);padding:10px 14px;min-width:240px;box-shadow:0 12px 30px rgba(0,0,0,.2);font-size:13px;border:1px solid rgba(255,255,255,.15);}
+.toast small{display:block;opacity:.8;margin-top:3px;font-size:11px;}
+.toast.error{background:linear-gradient(135deg,#7f1d1d,#991b1b);}
+.muted{color:var(--muted);}
+.empty{color:var(--muted);font-size:12px;text-align:center;padding:20px 0;}
+.hr{height:1px;background:var(--line);margin:6px 0;}
+.scroll-inner{overflow-y:auto;max-height:220px;}
+.tag{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid;}
+.tag-green{background:#d1fae5;color:#065f46;border-color:#6ee7b7;}
+.tag-blue{background:#dbeafe;color:#1e40af;border-color:#93c5fd;}
+.tag-purple{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
+
+/* ── ADMIN PANEL ── */
+.admin-lock-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center;}
+.admin-lock-icon{font-size:48px;}
+.admin-lock-title{font-size:18px;font-weight:700;}
+.admin-lock-sub{font-size:13px;color:var(--muted);}
+.admin-section{display:none;}
+.admin-section.unlocked{display:block;}
+.admin-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;}
+.admin-tab{padding:7px 14px;font-size:12px;font-weight:600;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer;transition:all .12s;}
+.admin-tab.active{background:#fff;border-color:var(--line);color:var(--accent-2);margin-bottom:-1px;}
+
+/* ── MODEL CAPABILITIES ── */
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.cap-card{border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;background:var(--panel);position:relative;overflow:hidden;}
+.cap-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.cap-card.local-cap::before{background:linear-gradient(90deg,#10b981,#6ee7b7);}
+.cap-card.cloud-cap::before{background:linear-gradient(90deg,#3b82f6,#93c5fd);}
+.cap-card-name{font-weight:700;font-size:13px;margin-bottom:4px;}
+.cap-card-best{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.cap-card-strengths{display:flex;flex-wrap:wrap;gap:3px;}
+.cap-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.cap-filter-btn{padding:4px 12px;border-radius:999px;border:1px solid var(--line-2);font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);transition:all .12s;}
+.cap-filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ── SETTINGS TABS ── */
+.settings-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:0;flex-wrap:wrap;}
+.settings-tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .12s;}
+.settings-tab.active{color:var(--accent-2);border-bottom-color:var(--accent);}
+.settings-tab-panel{display:none;padding:12px;}
+.settings-tab-panel.active{display:block;}
+</style>
+</head>
+<body>
+<div id="startup-overlay">
+  <div class="spinner"></div>
+  <div class="startup-msg" id="startup-title">Starting <span id="startup-agent-name">Aria</span>…</div>
+  <div class="startup-sub" id="startup-sub">Connecting to agent, please wait…</div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">✦ <span id="sidebar-agent-name">Aria</span></div>
+      <div class="brand-sub">Personal AI Agent Dashboard</div>
+    </div>
+    <div class="sidebar-inner">
+      <div class="nav">
+        <button class="active" data-page="chat">💬 Chat</button>
+        <button data-page="files">📁 Files</button>
+        <button data-page="tasks">✅ Tasks</button>
+        <button data-page="knowledge">🧠 Knowledge</button>
+        <button data-page="models">🤖 Models</button>
+        <button data-page="activity">📈 Activity</button>
+        <button data-page="settings">⚙️ Settings</button>
+        <a href="/hf" target="_blank" style="text-align:left;background:linear-gradient(135deg,rgba(79,158,255,.12),rgba(167,139,250,.08));border:1px solid rgba(79,158,255,.3);color:#4f9eff;border-radius:8px;padding:9px 11px;font-size:13px;font-weight:600;transition:all .12s;display:flex;align-items:center;gap:8px;text-decoration:none;margin-top:4px;" title="Download and manage local GGUF models from HuggingFace">🤗 HF Model Manager</a>
+      </div>
+      <div class="scard">
+        <h4>Connections</h4>
+        <div class="srow"><span id="s-local-dot" class="dot pulse"></span><span id="s-local">Local: checking…</span><span id="s-local-lat" class="latency-badge" style="display:none"></span></div>
+        <div class="srow"><span id="s-cloud-dot" class="dot pulse"></span><span id="s-cloud">Cloud: checking…</span><span id="s-cloud-lat" class="latency-badge" style="display:none"></span></div>
+        <div class="srow"><span id="s-hybrid-dot" class="dot" style="background:#8b5cf6"></span><span id="s-hybrid">Hybrid: –</span></div>
+        <div class="srow"><span id="s-sync-dot" class="dot pulse"></span><span id="s-sync">Sync: checking…</span></div>
+      </div>
+      <div class="scard">
+        <h4>Quick Stats</h4>
+        <div class="srow"><span class="dot ok"></span><span id="stat-memory">Memory: –</span></div>
+        <div class="srow"><span class="dot ok"></span><span id="stat-tasks">Tasks: –</span></div>
+        <div class="srow"><span class="dot ok"></span><span id="stat-files">Generated: –</span></div>
+        <div class="srow"><span class="dot ok"></span><span id="stat-mode">Mode: –</span></div>
+      </div>
+      <div class="scard">
+        <h4>Active Route</h4>
+        <div id="sidebar-route" style="font-size:12px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div>
+          <h1 id="page-title">Chat</h1>
+        </div>
+        <div class="topbar-sub" id="page-subtitle">Send a message — local, cloud, or hybrid routing.</div>
+      </div>
+      <div class="top-actions" id="top-actions-area">
+        <button class="btn ghost" id="btn-refresh-all">↻ Refresh</button>
+        <button class="btn" id="btn-run-sync">⇅ Sync</button>
+      </div>
+    </div>
+
+    <!-- CONNECTION BAR -->
+    <div class="conn-bar" id="conn-bar">
+      <div class="conn-pill" id="cb-local"><span class="dot"></span>Local: –</div>
+      <div class="conn-pill" id="cb-cloud"><span class="dot"></span>Cloud: –</div>
+      <div class="conn-pill" id="cb-hybrid"><span>⟳</span>Hybrid: –</div>
+      <div class="conn-pill" id="cb-sync"><span class="dot"></span>Sync: –</div>
+    </div>
+
+    <!-- CHAT PAGE -->
+    <section class="page active" id="page-chat" style="padding:0;display:flex;flex-direction:column;">
+      <div class="chat-wrap" style="flex:1;min-height:0;">
+        <!-- Mode toolbar -->
+        <div class="chat-toolbar">
+          <div class="mode-toolbar">
+            <div class="field-stack" style="min-width:180px;">
+              <label>MODE</label>
+              <select class="select" id="chat-mode" style="font-size:12px;padding:6px;">
+                <option value="local+cloud">⚡ Hybrid (local+cloud)</option>
+                <option value="cloud">☁️ Cloud only</option>
+                <option value="local">🔧 Local only</option>
+              </select>
+            </div>
+            <div class="field-stack" style="min-width:160px;">
+              <label>LOCAL MODEL</label>
+              <select class="select" id="chat-local-model" style="font-size:12px;padding:6px;"></select>
+            </div>
+            <div class="field-stack" style="min-width:220px;">
+              <label>CLOUD MODEL</label>
+              <select class="select" id="chat-cloud-model" style="font-size:12px;padding:6px;"></select>
+            </div>
+            <div class="field-stack" style="justify-content:flex-end;">
+              <label style="opacity:0;">-</label>
+              <div style="display:flex;gap:6px;">
+                <button class="btn sm" id="btn-save-chat-models">💾 Save</button>
+                <button class="btn sm" onclick="showPage('models')">🤖 Models</button>
+                <button class="btn sm intel" id="btn-intelligence" title="Intelligence Mode: Auto-select best models for this prompt">🧠 Intelligence</button>
+              </div>
+            </div>
+          </div>
+          <div class="hybrid-strip" id="hybrid-strip" style="margin-top:8px;display:none;">
+            <span class="btn-icon" style="font-size:14px;width:auto;height:auto;border:none;background:none;padding:0;">☁️</span>
+            <span id="hybrid-route-text">Hybrid cloud-first routing active</span>
+            <span id="intel-route-badge" style="display:none;" class="intel-badge">🧠 Intelligence Active</span>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chat-messages">
+          <div class="message">
+            <div class="bubble" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid var(--line-2);">
+              <strong>✦ <span class="agent-name-display">Aria</span> is ready.</strong> Choose your execution mode, then send a message or run a task.<br>
+              <span style="color:var(--muted);font-size:12px;">💡 Tip: Use <strong>🧠 Intelligence</strong> mode to auto-select the best AI model for your prompt.</span>
+            </div>
+            <div class="meta"><span>Mode: local+cloud</span></div>
+          </div>
+        </div>
+
+        <!-- Speaking indicator -->
+        <div id="speaking-indicator" style="display:none;padding:4px 16px;">
+          <span class="speaking-pill">
+            <span class="voice-wave"><span></span><span></span><span></span><span></span></span>
+            <span class="agent-name-display">Aria</span> is speaking…
+            <button onclick="stopSpeaking()" style="background:none;border:none;font-size:12px;cursor:pointer;color:var(--muted);">■ Stop</button>
+          </span>
+        </div>
+
+        <!-- Compose area -->
+        <div class="chat-compose">
+          <div class="chips" id="attach-chips"></div>
+          <div class="compose-row">
+            <textarea class="compose-textarea" id="chat-input" placeholder="Ask anything — create a file, analyze data, research a topic..." rows="2"></textarea>
+            <div class="compose-side">
+              <button class="btn-icon" id="btn-voice-input" title="Voice input" onclick="toggleVoiceInput()">🎤</button>
+              <button class="btn-icon" id="btn-voice-output" title="Toggle voice response" onclick="toggleVoiceOutput()">🔊</button>
+            </div>
+          </div>
+          <div class="compose-actions-row">
+            <button class="btn ghost sm" id="btn-attach" onclick="document.getElementById('chat-file-input').click()">📎 Attach</button>
+            <input type="file" id="chat-file-input" multiple hidden>
+            <div style="flex:1;font-size:11px;color:var(--muted);" id="compose-status"></div>
+            <button class="btn primary" id="btn-send" onclick="sendMessage()">Send ↵</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILES PAGE -->
+    <section class="page" id="page-files">
+      <div class="grid-2">
+        <div class="stack">
+          <div class="card">
+            <div class="card-header"><h3>📤 Upload files</h3></div>
+            <div class="card-body stack">
+              <div class="item">
+                <div class="item-title">Attach to chat</div>
+                <div class="item-sub">Upload files for one-off analysis or generation.</div>
+                <div class="item-actions"><button class="btn" id="btn-upload-chat">Upload to chat</button></div>
+              </div>
+              <div class="item">
+                <div class="item-title">Add to knowledge base</div>
+                <div class="item-sub">Index files so the agent can recall them later.</div>
+                <div class="item-actions"><button class="btn primary" id="btn-upload-kb">Upload to knowledge</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="card-header"><h3>📎 Uploaded files</h3></div>
+            <div class="card-body"><div id="uploads-list" class="list scroll-inner"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📄 Generated files</h3><button class="btn sm" onclick="loadGenerated()">↻</button></div>
+          <div class="card-body"><div id="generated-list" class="list scroll-inner" style="max-height:380px;"></div></div>
+        </div>
+      </div>
+      <input type="file" id="file-input" multiple hidden>
+    </section>
+
+    <!-- TASKS PAGE -->
+    <section class="page" id="page-tasks">
+      <div class="grid-2">
+        <div class="stack">
+          <div class="card">
+            <div class="card-header"><h3>➕ Create task</h3></div>
+            <div class="card-body stack">
+              <div class="field-stack"><label>Title</label><input class="input" id="task-title" placeholder="Prepare weekly summary…"></div>
+              <div class="field-stack"><label>Description</label><textarea class="textarea" id="task-desc" placeholder="Details…" style="min-height:50px;"></textarea></div>
+              <div class="grid-3">
+                <div class="field-stack"><label>Priority</label><select class="select" id="task-priority"><option value="high">High</option><option value="normal" selected>Normal</option><option value="low">Low</option></select></div>
+                <div class="field-stack"><label>Schedule</label><input class="input" id="task-time" type="datetime-local"></div>
+                <div class="field-stack"><label>Reminder (min)</label><input class="input" id="task-reminder" type="number" min="0" value="15"></div>
+              </div>
+              <div class="item-actions"><button class="btn primary" id="btn-add-task">Add task</button></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>🔔 Due reminders</h3><button class="btn sm" id="btn-refresh-reminders">Check</button></div>
+            <div class="card-body"><div id="reminders-list" class="list scroll-inner"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📋 Task queue</h3></div>
+          <div class="card-body"><div id="tasks-list" class="list scroll-inner" style="max-height:380px;"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KNOWLEDGE PAGE -->
+    <section class="page" id="page-knowledge">
+      <div class="grid-2">
+        <div class="stack">
+          <div class="card">
+            <div class="card-header"><h3>📚 Knowledge sources</h3></div>
+            <div class="card-body"><div id="knowledge-list" class="list scroll-inner"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>💡 Save a fact</h3></div>
+            <div class="card-body stack">
+              <div class="field-stack"><label>Key</label><input class="input" id="fact-key" placeholder="project_name"></div>
+              <div class="field-stack"><label>Value</label><textarea class="textarea" id="fact-value" placeholder="Aria agent" style="min-height:50px;"></textarea></div>
+              <div class="item-actions"><button class="btn primary" id="btn-save-fact">Save fact</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <div class="card-header"><h3>🔗 Sync status</h3></div>
+            <div class="card-body"><div id="sync-summary" class="cards-grid"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>📝 Sync log</h3></div>
+            <div class="card-body"><div id="sync-log-list" class="list scroll-inner"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODELS PAGE -->
+    <section class="page" id="page-models" style="padding:12px;">
+      <div class="card">
+        <div class="card-header">
+          <h3>🤖 Model Capabilities</h3>
+          <div style="display:flex;gap:6px;">
+            <button class="btn sm" onclick="loadCapabilities()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Understand what each model excels at and get recommendations for your use case.</div>
+          <div class="cap-filter" id="cap-filter">
+            <button class="cap-filter-btn active" data-filter="all" onclick="filterCapabilities(this,'all')">All</button>
+            <button class="cap-filter-btn" data-filter="general"  onclick="filterCapabilities(this,'general')">💬 General</button>
+            <button class="cap-filter-btn" data-filter="coding"   onclick="filterCapabilities(this,'coding')">💻 Coding</button>
+            <button class="cap-filter-btn" data-filter="reasoning" onclick="filterCapabilities(this,'reasoning')">🧠 Reasoning</button>
+            <button class="cap-filter-btn" data-filter="analysis" onclick="filterCapabilities(this,'analysis')">📊 Analysis</button>
+            <button class="cap-filter-btn" data-filter="fast"     onclick="filterCapabilities(this,'fast')">⚡ Fast</button>
+            <button class="cap-filter-btn" data-filter="creative" onclick="filterCapabilities(this,'creative')">✨ Creative</button>
+          </div>
+          <div class="cap-grid" id="cap-grid"><div class="empty">Loading model capabilities…</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <div class="card-header"><h3>📊 Recommendations by Task</h3></div>
+        <div class="card-body">
+          <div class="grid-3" id="recommendations-grid">
+            <div class="item">
+              <div class="item-title">🔍 Summarizing / Analysis</div>
+              <div class="item-sub" id="rec-analysis">Loading…</div>
+            </div>
+            <div class="item">
+              <div class="item-title">💻 Code Generation</div>
+              <div class="item-sub" id="rec-coding">Loading…</div>
+            </div>
+            <div class="item">
+              <div class="item-title">🧠 Deep Reasoning / Math</div>
+              <div class="item-sub" id="rec-reasoning">Loading…</div>
+            </div>
+            <div class="item">
+              <div class="item-title">✨ Creative Writing</div>
+              <div class="item-sub" id="rec-creative">Loading…</div>
+            </div>
+            <div class="item">
+              <div class="item-title">⚡ Quick / Fast Tasks</div>
+              <div class="item-sub" id="rec-fast">Loading…</div>
+            </div>
+            <div class="item">
+              <div class="item-title">🌍 Multilingual</div>
+              <div class="item-sub" id="rec-multilingual">Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVITY PAGE -->
+    <section class="page" id="page-activity">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3>🖥 System monitor</h3></div>
+          <div class="card-body"><div id="monitor-card" class="cards-grid"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>📊 Recent activity</h3></div>
+          <div class="card-body"><div id="activity-list" class="list scroll-inner" style="max-height:300px;"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS PAGE -->
+    <section class="page" id="page-settings" style="padding:0;">
+      <div class="settings-tabs" id="settings-tabs">
+        <div class="settings-tab active" data-tab="providers">🔌 Providers</div>
+        <div class="settings-tab" data-tab="models-cfg">🤖 Models</div>
+        <div class="settings-tab" data-tab="ollama">🦙 Ollama</div>
+        <div class="settings-tab" data-tab="advanced">🔒 Advanced</div>
+      </div>
+
+      <!-- Providers tab -->
+      <div class="settings-tab-panel active" id="stab-providers">
+        <div class="stack" style="gap:10px;">
+          <div class="card">
+            <div class="card-header"><h3>🔌 Provider connections</h3><button class="btn sm" id="btn-refresh-connections">Refresh</button></div>
+            <div class="card-body"><div id="connection-cards" class="cards-grid"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><h3>🔑 Provider settings</h3></div>
+              <div class="card-body stack">
+                <div class="field-stack"><label>OpenRouter base URL</label><input class="input" id="pref-openrouter-base" placeholder="https://openrouter.ai/api/v1"></div>
+                <div class="field-stack"><label>OpenRouter API key</label><input class="input" id="pref-openrouter-key" placeholder="sk-or-…"></div>
+                <div class="field-stack"><label>Supabase URL</label><input class="input" id="pref-supabase-url" placeholder="https://xyz.supabase.co"></div>
+                <div class="field-stack"><label>Supabase key</label><input class="input" id="pref-supabase-key" placeholder="supabase key"></div>
+                <div class="item-actions">
+                  <button class="btn primary" id="btn-save-settings">Save settings</button>
+                  <button class="btn" id="btn-run-sync-settings">Run sync</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3>➕ Add cloud model / endpoint</h3></div>
+              <div class="card-body stack">
+                <div class="field-stack"><label>Name</label><input class="input" id="custom-name" placeholder="My custom model"></div>
+                <div class="field-stack"><label>Model ID</label><input class="input" id="custom-model" placeholder="qwen/qwen-2.5-coder-32b:free"></div>
+                <div class="field-stack"><label>Base URL</label><input class="input" id="custom-base" placeholder="https://openrouter.ai/api/v1"></div>
+                <div class="field-stack"><label>API key (if needed)</label><input class="input" id="custom-key" placeholder="sk-…"></div>
+                <div class="item-actions"><button class="btn primary" id="btn-add-custom">Add model</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Models config tab -->
+      <div class="settings-tab-panel" id="stab-models-cfg">
+        <div class="card">
+          <div class="card-header"><h3>🤖 Model management</h3><button class="btn sm" id="btn-refresh-models">↻ Refresh</button></div>
+          <div class="card-body">
+            <div id="models-local-list" class="stack" style="margin-bottom:12px;"></div>
+            <div class="hr"></div>
+            <div id="models-cloud-list" class="stack" style="margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Local Backend tab -->
+      <div class="settings-tab-panel" id="stab-ollama">
+        <div class="card">
+          <div class="card-header"><h3>⚡ Local Inference Backend</h3></div>
+          <div class="card-body stack">
+            <div id="ollama-status-card" class="item">
+              <div class="item-title">Backend Status</div>
+              <div class="item-sub" id="ollama-status-text">Checking…</div>
+              <div class="item-actions">
+                <a href="/hf" target="_blank" class="btn primary">🤗 Open Model Manager</a>
+                <button class="btn" onclick="refreshOllamaStatus()">↻ Refresh</button>
+                <button class="btn" onclick="startOllama()" title="Fallback: start Ollama if installed">🦙 Start Ollama</button>
+              </div>
+            </div>
+            <div class="item">
+              <div class="item-title">🤗 HuggingFace Model Manager</div>
+              <div class="item-sub">
+                Aria v7 uses <strong>llama-cpp-python</strong> to run models directly — no Ollama required.
+                Download GGUF models from HuggingFace, and Aria will automatically allocate GPU layers
+                based on your hardware (VRAM, RAM, CPU threads).<br><br>
+                <strong>Quick start:</strong><br>
+                1. Run <code>python setup_v7.py</code> to install the GPU-optimised backend<br>
+                2. Click <a href="/hf" target="_blank">🤗 Open Model Manager</a> to download a model<br>
+                3. Start chatting instantly — no CLI needed
+              </div>
+            </div>
+            <div class="item">
+              <div class="item-title">🦙 Ollama (optional fallback)</div>
+              <div class="item-sub">
+                If llama-cpp-python is not installed, Aria falls back to Ollama automatically.
+                Ollama URL: <code id="ollama-url-display">—</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced (admin) tab -->
+      <div class="settings-tab-panel" id="stab-advanced">
+        <div class="card">
+          <div class="card-header"><h3>🔒 Advanced / Admin Settings</h3></div>
+          <div class="card-body">
+            <!-- Lock screen -->
+            <div id="admin-lock-screen" class="admin-lock-screen">
+              <div class="admin-lock-icon">🔐</div>
+              <div class="admin-lock-title">Admin Area</div>
+              <div class="admin-lock-sub">Enter your admin password to access advanced settings.<br>Default password: <code>aria2025</code></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="input" id="admin-pw-input" type="password" placeholder="Enter password…" style="width:220px;" onkeydown="if(event.key==='Enter')verifyAdmin()">
+                <button class="btn primary" onclick="verifyAdmin()">Unlock</button>
+              </div>
+              <div id="admin-pw-error" style="color:var(--danger);font-size:12px;display:none;">Incorrect password.</div>
+            </div>
+
+            <!-- Admin section (unlocked) -->
+            <div class="admin-section" id="admin-panel">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <span style="font-size:13px;font-weight:700;">✅ Admin panel unlocked</span>
+                <button class="btn sm danger" onclick="lockAdmin()">🔒 Lock</button>
+              </div>
+
+              <div class="admin-tabs">
+                <div class="admin-tab active" onclick="switchAdminTab(this,'agent')">🤖 Agent</div>
+                <div class="admin-tab" onclick="switchAdminTab(this,'voice')">🔊 Voice</div>
+                <div class="admin-tab" onclick="switchAdminTab(this,'security')">🔑 Security</div>
+              </div>
+
+              <!-- Agent tab -->
+              <div id="admin-tab-agent" style="padding:12px 0;">
+                <div class="stack">
+                  <div class="field-stack">
+                    <label>Agent Name</label>
+                    <input class="input" id="admin-agent-name" placeholder="Aria">
+                    <div style="font-size:11px;color:var(--muted);">The name shown in the chat and sidebar. Changes require restart for full effect.</div>
+                  </div>
+                  <div class="item-actions">
+                    <button class="btn primary" onclick="saveAdminSettings()">Save changes</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Voice tab -->
+              <div id="admin-tab-voice" style="display:none;padding:12px 0;">
+                <div class="stack">
+                  <div class="field-stack">
+                    <label>Voice Gender</label>
+                    <select class="select" id="admin-voice-gender">
+                      <option value="female">👩 Female</option>
+                      <option value="male">👨 Male</option>
+                    </select>
+                  </div>
+                  <div class="field-stack">
+                    <label>Specific Voice</label>
+                    <select class="select" id="admin-voice-name">
+                      <option value="">Auto (system default for gender)</option>
+                    </select>
+                    <div style="font-size:11px;color:var(--muted);">Available voices depend on your browser and OS.</div>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="btn sm" onclick="previewVoice()">▶ Preview voice</button>
+                    <span id="voice-preview-status" style="font-size:11px;color:var(--muted);"></span>
+                  </div>
+                  <div class="item-actions">
+                    <button class="btn primary" onclick="saveAdminSettings()">Save changes</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Security tab -->
+              <div id="admin-tab-security" style="display:none;padding:12px 0;">
+                <div class="stack">
+                  <div class="field-stack">
+                    <label>New Admin Password</label>
+                    <input class="input" id="admin-new-pw" type="password" placeholder="Enter new password…">
+                  </div>
+                  <div class="field-stack">
+                    <label>Confirm Password</label>
+                    <input class="input" id="admin-new-pw-confirm" type="password" placeholder="Confirm new password…">
+                  </div>
+                  <div class="item-actions">
+                    <button class="btn primary" onclick="changeAdminPassword()">Change password</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ============================================================
+//  Aria Dashboard v6 JavaScript
+// ============================================================
+
+const API = '';
+let agentName    = 'Aria';
+let intelligenceMode = false;
+let voiceOutputEnabled = false;
+let voiceRecognition = null;
+let voiceRecognitionActive = false;
+let currentSpeechSynth = null;
+let attachedFiles    = [];
+let capabilitiesData = {};
+let adminUnlocked    = false;
+let selectedVoiceName = '';
+let speechSynthVoices = [];
+
+// ── Markdown & highlight setup ──────────────────────────────
+if (typeof marked !== 'undefined') {
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+    highlight: (code, lang) => {
+      if (hljs && lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, {language: lang}).value;
+      }
+      return hljs ? hljs.highlightAuto(code).value : code;
+    }
+  });
+}
+
+function renderMarkdown(text) {
+  if (typeof marked === 'undefined') return escapeHtml(text).replace(/\n/g,'<br>');
+  try { return marked.parse(text || ''); } catch(e) { return escapeHtml(text); }
+}
+
+function escapeHtml(t) {
+  return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Toast ────────────────────────────────────────────────────
+function toast(msg, sub='', isError=false) {
+  const wrap = document.getElementById('toast-wrap');
+  const el   = document.createElement('div');
+  el.className = 'toast' + (isError ? ' error' : '');
+  el.innerHTML = `${escapeHtml(msg)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+// ── Page navigation ─────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) { page.style.display = 'flex'; page.classList.add('active'); }
+  document.querySelectorAll(`.nav button[data-page="${id}"]`).forEach(b => b.classList.add('active'));
+  const titles = {chat:'Chat',files:'Files',tasks:'Tasks',knowledge:'Knowledge',models:'Models',activity:'Activity',settings:'Settings'};
+  document.getElementById('page-title').textContent = titles[id] || id;
+  if (id === 'files') { loadUploads(); loadGenerated(); }
+  if (id === 'tasks') loadTasks();
+  if (id === 'knowledge') { loadKnowledge(); loadSyncStatus(); }
+  if (id === 'activity') loadActivity();
+  if (id === 'models') loadCapabilities();
+  if (id === 'settings') loadSettings();
+}
+
+document.querySelectorAll('.nav button[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+
+// ── Settings tabs ────────────────────────────────────────────
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById('stab-' + tab.dataset.tab);
+    if (panel) panel.classList.add('active');
+    if (tab.dataset.tab === 'ollama') refreshOllamaStatus();
+  });
+});
+
+// ── Intelligence mode ────────────────────────────────────────
+document.getElementById('btn-intelligence').addEventListener('click', () => {
+  intelligenceMode = !intelligenceMode;
+  const btn = document.getElementById('btn-intelligence');
+  btn.classList.toggle('active', intelligenceMode);
+  btn.textContent = intelligenceMode ? '🧠 Intelligence ✓' : '🧠 Intelligence';
+  document.getElementById('intel-route-badge').style.display = intelligenceMode ? '' : 'none';
+  toast(intelligenceMode ? '🧠 Intelligence mode ON — auto-selecting best models' : '🧠 Intelligence mode OFF');
+});
+
+// ── Chat send ────────────────────────────────────────────────
+async function sendMessage() {
+  const input  = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const mode       = document.getElementById('chat-mode').value;
+  const localModel = document.getElementById('chat-local-model').value;
+  const cloudModel = document.getElementById('chat-cloud-model').value;
+
+  addMessage('user', message);
+  input.value = '';
+  document.getElementById('compose-status').textContent = '';
+
+  const thinkingId = addThinkingPlaceholder();
+  document.getElementById('btn-send').disabled = true;
+
+  try {
+    const fileIds = attachedFiles.map(f => f.id);
+    const res = await fetch(`${API}/api/chat`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message, execution_mode: mode,
+        local_model: localModel || null,
+        cloud_model: cloudModel || null,
+        attached_file_ids: fileIds,
+        intelligence_mode: intelligenceMode,
+      })
+    });
+    const data = await res.json();
+    removeThinkingPlaceholder(thinkingId);
+    addMessage('assistant', data.response || '(no response)', {
+      model: data.model_used,
+      mode:  data.execution_mode,
+      tools: data.tools_used,
+      latency: data.latency_ms,
+      files: data.generated_files || [],
+      thinking: data.thinking_steps || [],
+      intel: data.intelligence_route,
+    });
+    // Voice output
+    if (voiceOutputEnabled && data.response) {
+      speakText(data.response);
+    }
+    attachedFiles = [];
+    document.getElementById('attach-chips').innerHTML = '';
+    loadStats();
+  } catch(e) {
+    removeThinkingPlaceholder(thinkingId);
+    addMessage('assistant', `⚠️ **Network error:** ${e.message}`, {model:'error', mode:'error'});
+  }
+  document.getElementById('btn-send').disabled = false;
+}
+
+// Enter to send
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function addThinkingPlaceholder() {
+  const id    = 'thinking-' + Date.now();
+  const msgs  = document.getElementById('chat-messages');
+  const el    = document.createElement('div');
+  el.id       = id;
+  el.className = 'message';
+  const mode  = document.getElementById('chat-mode')?.value || 'local+cloud';
+  const localModel  = document.getElementById('chat-local-model')?.value || 'local model';
+  const cloudModel  = document.getElementById('chat-cloud-model')?.value;
+  const hasCloud    = cloudModel && cloudModel !== '';
+  const modeHint    = mode === 'local+cloud'
+    ? (hasCloud ? '☁️ Trying cloud first, 🔧 local fallback…' : '🔧 Using local model (no cloud configured)…')
+    : (mode === 'cloud' ? '☁️ Querying cloud model…' : '🔧 Running local model…');
+  const slowHint    = (!hasCloud || mode === 'local')
+    ? '<div style="font-size:10.5px;color:#6b7280;margin-top:4px;">⏱ Local inference may take 30–120 seconds</div>' : '';
+  el.innerHTML = `<div class="bubble" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px dashed #93c5fd;color:#1e40af;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--line);border-top-color:#3b82f6;"></div>
+      <div>
+        <div style="font-size:12px;font-weight:600;" id="${id}-status">${modeHint}</div>
+        ${slowHint}
+        <div style="font-size:10px;color:#6b7280;margin-top:2px;" id="${id}-timer">0s elapsed</div>
+      </div>
+    </div>
+  </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  // Elapsed timer
+  const start = Date.now();
+  const timer = setInterval(() => {
+    const timerEl = document.getElementById(`${id}-timer`);
+    if (!timerEl) { clearInterval(timer); return; }
+    const sec = Math.round((Date.now() - start) / 1000);
+    timerEl.textContent = `${sec}s elapsed`;
+    if (sec > 15 && !hasCloud) {
+      const statusEl = document.getElementById(`${id}-status`);
+      if (statusEl) statusEl.textContent = '🔧 Local model processing… (please wait)';
+    }
+  }, 1000);
+  el._timer = timer;
+  return id;
+}
+
+function removeThinkingPlaceholder(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    if (el._timer) clearInterval(el._timer);
+    el.remove();
+  }
+}
+
+function addMessage(role, text, meta={}) {
+  const msgs = document.getElementById('chat-messages');
+  const el   = document.createElement('div');
+  el.className = 'message ' + role;
+
+  let bubbleContent = '';
+
+  // Thinking steps (shown before response)
+  if (role === 'assistant' && meta.thinking && meta.thinking.length > 0) {
+    const stepsHtml = meta.thinking.map(s => `
+      <div class="thinking-step">
+        <span class="thinking-step-icon">${s.step.split(' ')[0]}</span>
+        <div>
+          <div>${s.step.replace(/^[^\s]+\s/,'')}</div>
+          ${s.detail ? `<div class="thinking-step-detail">${escapeHtml(s.detail)}</div>` : ''}
+        </div>
+      </div>`).join('');
+    bubbleContent += `<div class="thinking-block">
+      <div class="thinking-header" onclick="this.classList.toggle('open')">
+        <span>⚙️ How I worked on this</span>
+        <span style="font-size:10px;color:#6b7280;">${meta.thinking.length} steps</span>
+        <span class="thinking-chevron">›</span>
+      </div>
+      <div class="thinking-steps-list">${stepsHtml}</div>
+    </div>`;
+  }
+
+  if (role === 'user') {
+    bubbleContent = escapeHtml(text);
+  } else {
+    bubbleContent += renderMarkdown(text);
+  }
+
+  // Download buttons for generated files
+  let downloadHtml = '';
+  if (meta.files && meta.files.length > 0) {
+    downloadHtml = '<div class="download-list">' +
+      meta.files.map(f => `<a class="download-btn" href="${API}/api/download/${encodeURIComponent(f.name)}" download="${f.name}">
+        <span class="dl-icon">📥</span> Download ${escapeHtml(f.name)}
+      </a>`).join('') + '</div>';
+  }
+
+  // Meta row
+  let metaHtml = '<div class="meta">';
+  if (meta.model) metaHtml += `<span>Model: ${escapeHtml(meta.model)}</span>`;
+  if (meta.mode)  metaHtml += `<span>Mode: ${escapeHtml(meta.mode)}</span>`;
+  if (meta.latency) metaHtml += `<span>⏱ ${meta.latency}ms</span>`;
+  if (meta.tools && meta.tools.length) metaHtml += `<span>Tools: ${meta.tools.join(', ')}</span>`;
+  if (intelligenceMode && meta.intel) metaHtml += `<span class="intel-badge">🧠 Intelligence: ${meta.intel.task_type}</span>`;
+  metaHtml += '</div>';
+
+  el.innerHTML = `<div class="bubble">${bubbleContent}${downloadHtml}</div>${metaHtml}`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Apply syntax highlighting to code blocks
+  if (role === 'assistant' && typeof hljs !== 'undefined') {
+    el.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+  }
+}
+
+// ── File attachment ──────────────────────────────────────────
+document.getElementById('chat-file-input').addEventListener('change', async (e) => {
+  for (const file of e.target.files) {
+    await uploadAttachment(file);
+  }
+  e.target.value = '';
+});
+
+async function uploadAttachment(file) {
+  const status = document.getElementById('compose-status');
+  status.textContent = `Uploading ${file.name}…`;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('add_to_knowledge', 'false');
+  try {
+    const res  = await fetch(`${API}/api/upload`, {method:'POST', body:formData});
+    const data = await res.json();
+    attachedFiles.push({id: data.id, name: file.name});
+    renderAttachChips();
+    status.textContent = '';
+    toast(`Attached: ${file.name}`);
+  } catch(e) {
+    status.textContent = `Upload failed: ${e.message}`;
+  }
+}
+
+function renderAttachChips() {
+  const chips = document.getElementById('attach-chips');
+  chips.innerHTML = attachedFiles.map(f => `
+    <span class="chip">📎 ${escapeHtml(f.name)} <button onclick="removeAttach('${f.id}')">×</button></span>
+  `).join('');
+}
+
+function removeAttach(id) {
+  attachedFiles = attachedFiles.filter(f => f.id !== id);
+  renderAttachChips();
+}
+
+// ── Voice Input (Web Speech API) ─────────────────────────────
+function toggleVoiceInput() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    toast('Voice input not supported in this browser', 'Try Chrome or Edge', true);
+    return;
+  }
+  if (voiceRecognitionActive) {
+    if (voiceRecognition) voiceRecognition.stop();
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceRecognition = new SR();
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+  voiceRecognition.lang = 'en-US';
+
+  voiceRecognition.onstart = () => {
+    voiceRecognitionActive = true;
+    document.getElementById('btn-voice-input').classList.add('recording');
+    document.getElementById('compose-status').innerHTML = '<span style="color:var(--danger);">🔴 Listening…</span>';
+  };
+  voiceRecognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    document.getElementById('chat-input').value = transcript;
+  };
+  voiceRecognition.onend = () => {
+    voiceRecognitionActive = false;
+    document.getElementById('btn-voice-input').classList.remove('recording');
+    document.getElementById('compose-status').textContent = '';
+  };
+  voiceRecognition.onerror = (e) => {
+    voiceRecognitionActive = false;
+    document.getElementById('btn-voice-input').classList.remove('recording');
+    document.getElementById('compose-status').textContent = '';
+    toast('Voice recognition error', e.error, true);
+  };
+  voiceRecognition.start();
+}
+
+// ── Voice Output (Text-to-Speech) ────────────────────────────
+function loadVoices() {
+  if (!window.speechSynthesis) return;
+  speechSynthVoices = window.speechSynthesis.getVoices();
+  const sel = document.getElementById('admin-voice-name');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Auto (system default for gender)</option>';
+  speechSynthVoices.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`;
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+}
+
+if (window.speechSynthesis) {
+  speechSynthesis.onvoiceschanged = loadVoices;
+  setTimeout(loadVoices, 500);
+}
+
+function toggleVoiceOutput() {
+  voiceOutputEnabled = !voiceOutputEnabled;
+  const btn = document.getElementById('btn-voice-output');
+  btn.style.background = voiceOutputEnabled ? 'var(--accent-3)' : '';
+  btn.style.borderColor = voiceOutputEnabled ? 'var(--accent)' : '';
+  toast(voiceOutputEnabled ? '🔊 Voice responses ON' : '🔇 Voice responses OFF');
+}
+
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  stopSpeaking();
+  // Strip markdown for TTS
+  const clean = text.replace(/#{1,6}\s/g,'').replace(/\*\*/g,'').replace(/\*/g,'').replace(/`{1,3}/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').substring(0, 2000);
+  const utter = new SpeechSynthesisUtterance(clean);
+  // Find appropriate voice
+  const voices = window.speechSynthesis.getVoices();
+  const gender = selectedVoiceName ? null : voiceGender();
+  if (selectedVoiceName) {
+    utter.voice = voices.find(v => v.name === selectedVoiceName) || null;
+  } else if (gender === 'male') {
+    utter.voice = voices.find(v => /male|man|david|james|daniel|alex|tom|mark/i.test(v.name)) || null;
+  } else {
+    utter.voice = voices.find(v => /female|woman|samantha|victoria|karen|susan|lisa|emma|google uk/i.test(v.name)) || null;
+  }
+  utter.rate = 1.0; utter.pitch = 1.0;
+  utter.onstart = () => document.getElementById('speaking-indicator').style.display = '';
+  utter.onend = utter.onerror = () => document.getElementById('speaking-indicator').style.display = 'none';
+  currentSpeechSynth = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+function stopSpeaking() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.getElementById('speaking-indicator').style.display = 'none';
+}
+
+function voiceGender() {
+  return document.getElementById('admin-voice-gender')?.value || 'female';
+}
+
+// ── Connection status ────────────────────────────────────────
+function latClass(ms) { return ms < 500 ? 'lat-ok' : ms < 2000 ? 'lat-warn' : 'lat-bad'; }
+
+async function loadConnections() {
+  try {
+    const res  = await fetch(`${API}/api/connections`);
+    const data = await res.json();
+    updateConnectionUI(data);
+    // If catalog missing or empty cloud_models, fetch models directly
+    if (!data.catalog || !(data.catalog.cloud_models || []).length) {
+      await loadModelSelectors();
+    }
+  } catch(e) { console.warn('[loadConnections]', e); }
+}
+
+// Dedicated model selector refresh — hits /api/models directly
+async function loadModelSelectors() {
+  try {
+    const res  = await fetch(`${API}/api/models`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if ((data.local_models||[]).length || (data.cloud_models||[]).length) {
+      populateModelSelectors(data);
+    }
+  } catch(e) { console.warn('[loadModelSelectors]', e); }
+}
+
+function updateConnectionUI(data) {
+  const ollama     = data.ollama     || {};
+  const openrouter = data.openrouter || {};
+  const supabase   = data.supabase   || {};
+
+  // Sidebar
+  const localOk  = ollama.connected;
+  const cloudOk  = openrouter.connected;
+  const hybridOk = localOk && cloudOk;
+
+  document.getElementById('s-local-dot').className = 'dot ' + (localOk ? 'ok' : 'bad');
+  document.getElementById('s-local').textContent   = localOk ? 'Local: running' : 'Local: offline';
+  if (ollama.latency_ms != null) {
+    const lb = document.getElementById('s-local-lat');
+    lb.style.display = ''; lb.textContent = ollama.latency_ms + 'ms';
+    lb.className = 'latency-badge ' + latClass(ollama.latency_ms);
+  }
+  document.getElementById('s-cloud-dot').className = 'dot ' + (cloudOk ? 'ok' : 'bad');
+  document.getElementById('s-cloud').textContent   = cloudOk ? 'Cloud: ok' : 'Cloud: offline';
+  if (openrouter.latency_ms != null) {
+    const cb = document.getElementById('s-cloud-lat');
+    cb.style.display = ''; cb.textContent = openrouter.latency_ms + 'ms';
+    cb.className = 'latency-badge ' + latClass(openrouter.latency_ms);
+  }
+  document.getElementById('s-hybrid-dot').style.background = hybridOk ? '#8b5cf6' : '#cbd5e1';
+  document.getElementById('s-hybrid').textContent = hybridOk ? 'Hybrid: both active' : (localOk||cloudOk ? 'Hybrid: partial' : 'Hybrid: offline');
+  const syncOk = supabase.connected;
+  document.getElementById('s-sync-dot').className = 'dot ' + (syncOk ? 'ok' : 'warn');
+  document.getElementById('s-sync').textContent   = syncOk ? 'Sync: connected' : (supabase.configured ? 'Sync: error' : 'Sync: not configured');
+
+  // Top connection bar
+  const cbLocal = document.getElementById('cb-local');
+  cbLocal.className  = 'conn-pill ' + (localOk ? 'ok' : 'bad');
+  cbLocal.innerHTML  = `<span class="dot ${localOk?'ok':'bad'}"></span>Local: ${localOk ? '✓ '+ollama.latency_ms+'ms' : 'offline'}`;
+  const cbCloud = document.getElementById('cb-cloud');
+  cbCloud.className  = 'conn-pill ' + (cloudOk ? 'ok' : 'bad');
+  cbCloud.innerHTML  = `<span class="dot ${cloudOk?'ok':'bad'}"></span>Cloud: ${cloudOk ? '✓ '+openrouter.latency_ms+'ms' : 'offline'}`;
+  const cbHybrid = document.getElementById('cb-hybrid');
+  cbHybrid.className = 'conn-pill ' + (hybridOk ? 'ok' : 'warn');
+  cbHybrid.innerHTML = `<span>⚡</span>Hybrid: ${hybridOk ? '⬆ Cloud-first' : 'partial'}`;
+  const cbSync = document.getElementById('cb-sync');
+  cbSync.className   = 'conn-pill ' + (syncOk ? 'ok' : 'warn');
+  cbSync.innerHTML   = `<span class="dot ${syncOk?'ok':'warn'}"></span>Sync: ${syncOk ? '✓ '+supabase.latency_ms+'ms' : 'off'}`;
+
+  // Hybrid strip in chat
+  const strip = document.getElementById('hybrid-strip');
+  if (hybridOk || localOk || cloudOk) {
+    strip.style.display = '';
+    const activeText = hybridOk ? '☁️ Cloud-first → 🔧 Local fallback — hybrid routing active' : (cloudOk ? '☁️ Cloud only' : '🔧 Local only');
+    document.getElementById('hybrid-route-text').textContent = activeText;
+  }
+
+  // Model selectors
+  if (data.catalog) populateModelSelectors(data.catalog);
+
+  // Sidebar route
+  const catalog = data.catalog || {};
+  document.getElementById('sidebar-route').innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px;">${catalog.execution_mode === 'local+cloud' ? '⚡ Hybrid' : catalog.execution_mode || '–'}</div>
+    <div>Local: <span style="color:var(--text);">${catalog.selected_local_model || '–'}</span></div>
+    <div>Cloud: <span style="color:var(--text);">${(catalog.selected_cloud_model||'–').split('/').pop()}</span></div>
+  `;
+}
+
+function populateModelSelectors(catalog) {
+  const localSel = document.getElementById('chat-local-model');
+  const cloudSel = document.getElementById('chat-cloud-model');
+  const prevLocal = localSel.value || catalog.selected_local_model;
+  const prevCloud = cloudSel.value || catalog.selected_cloud_model;
+  localSel.innerHTML = (catalog.local_models || []).map(m =>
+    `<option value="${m.id}" ${m.id===prevLocal?'selected':''}>${m.name}${m.size_gb?' ('+m.size_gb+'GB)':''}</option>`
+  ).join('') || '<option value="">No local models</option>';
+  cloudSel.innerHTML = (catalog.cloud_models || []).map(m =>
+    `<option value="${m.id}" ${m.id===prevCloud?'selected':''}>${m.name||m.id}</option>`
+  ).join('') || '<option value="">No cloud models</option>';
+}
+
+// ── Stats ────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const data = await (await fetch(`${API}/api/stats`)).json();
+    agentName = data.agent_name || 'Aria';
+    document.querySelectorAll('.agent-name-display').forEach(el => el.textContent = agentName);
+    document.getElementById('sidebar-agent-name').textContent = agentName;
+    document.title = `${agentName} Dashboard`;
+    document.getElementById('page-tab-title').textContent = agentName + ' Dashboard';
+    const mem = data.memory || {};
+    document.getElementById('stat-memory').textContent = `Memory: ${mem.total_chats || mem.conversations || 0} chats`;
+    const tasks = data.tasks || {};
+    document.getElementById('stat-tasks').textContent = `Tasks: ${Object.values(tasks).reduce((a,b)=>a+b,0)} total`;
+    document.getElementById('stat-files').textContent = `Generated: ${data.generated_files || 0} files`;
+    document.getElementById('stat-mode').textContent  = `Mode: ${data.models?.execution_mode || '–'}`;
+  } catch(e) {}
+}
+
+// ── Generated files ──────────────────────────────────────────
+async function loadGenerated() {
+  try {
+    const items = await (await fetch(`${API}/api/generated`)).json();
+    const list  = document.getElementById('generated-list');
+    if (!items.length) { list.innerHTML = '<div class="empty">No generated files yet.</div>'; return; }
+    list.innerHTML = items.map(f => `
+      <div class="item">
+        <div class="item-head">
+          <div>
+            <div class="item-title">${escapeHtml(f.name)}</div>
+            <div class="item-sub">${f.filetype} · ${(f.size/1024).toFixed(1)} KB${f.model_used ? ' · '+escapeHtml(f.model_used) : ''}</div>
+          </div>
+        </div>
+        <div class="item-actions">
+          <a class="download-btn" href="${API}/api/download/${encodeURIComponent(f.name)}" download="${f.name}">
+            <span class="dl-icon">📥</span> Download
+          </a>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function loadUploads() {
+  try {
+    const items = await (await fetch(`${API}/api/uploads`)).json();
+    const list  = document.getElementById('uploads-list');
+    if (!items.length) { list.innerHTML = '<div class="empty">No uploads yet.</div>'; return; }
+    list.innerHTML = items.map(u => `
+      <div class="item">
+        <div class="item-title">${escapeHtml(u.filename)}</div>
+        <div class="item-sub">${u.filetype} · ${(u.size/1024).toFixed(1)} KB${u.indexed?' · indexed':''}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── Tasks ────────────────────────────────────────────────────
+async function loadTasks() {
+  try {
+    const items = await (await fetch(`${API}/api/tasks`)).json();
+    const list  = document.getElementById('tasks-list');
+    if (!items.length) { list.innerHTML = '<div class="empty">No tasks yet.</div>'; return; }
+    list.innerHTML = items.map(t => `
+      <div class="item">
+        <div class="item-head">
+          <div><div class="item-title">${escapeHtml(t.title)}</div><div class="item-sub">${t.description||''}</div></div>
+          <div><span class="badge ${t.status}">${t.status}</span> <span class="badge ${t.priority}">${t.priority}</span></div>
+        </div>
+        <div class="item-actions">
+          <button class="btn sm primary" onclick="runTask('${t.id}')">▶ Run</button>
+          <button class="btn sm danger" onclick="deleteTask('${t.id}')">✕ Delete</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+document.getElementById('btn-add-task').addEventListener('click', async () => {
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) return toast('Task title is required.','',true);
+  await fetch(`${API}/api/tasks`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    title, description:document.getElementById('task-desc').value,
+    priority:document.getElementById('task-priority').value,
+    scheduled_at:document.getElementById('task-time').value||null,
+    reminder_minutes:parseInt(document.getElementById('task-reminder').value)||15
+  })});
+  toast('Task created!');
+  document.getElementById('task-title').value='';
+  document.getElementById('task-desc').value='';
+  loadTasks();
+});
+
+async function runTask(id) {
+  toast('Running task…');
+  const res  = await fetch(`${API}/api/tasks/${id}/run`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});
+  const data = await res.json();
+  toast('Task completed!', (data.response||'').substring(0,80));
+  loadTasks();
+}
+
+async function deleteTask(id) {
+  await fetch(`${API}/api/tasks/${id}`,{method:'DELETE'});
+  toast('Task deleted.'); loadTasks();
+}
+
+// ── Knowledge ────────────────────────────────────────────────
+async function loadKnowledge() {
+  try {
+    const sources = await (await fetch(`${API}/api/knowledge/sources`)).json();
+    const list    = document.getElementById('knowledge-list');
+    if (!sources.length) { list.innerHTML = '<div class="empty">No knowledge sources indexed yet.</div>'; return; }
+    list.innerHTML = sources.map(s => `
+      <div class="item"><div class="item-title">${escapeHtml(s.source||s)}</div>
+      <div class="item-sub">${s.chunks||''} chunks</div></div>`).join('');
+  } catch(e) {}
+}
+
+async function loadSyncStatus() {
+  try {
+    const data = await (await fetch(`${API}/api/connections`)).json();
+    const sync = data.supabase || {};
+    document.getElementById('sync-summary').innerHTML = `
+      <div class="mini-card sync">
+        <h4>Supabase Sync</h4>
+        <div class="kv">
+          <span class="kv-k">Status</span><span class="kv-v">${sync.connected?'✅ Connected':'❌ Disconnected'}</span>
+          <span class="kv-k">Configured</span><span class="kv-v">${sync.configured?'Yes':'No'}</span>
+          <span class="kv-k">Last sync</span><span class="kv-v">${sync.last_sync_at||'Never'}</span>
+          <span class="kv-k">Pushes</span><span class="kv-v">${sync.push_count||0}</span>
+        </div>
+      </div>`;
+    const logs = data.sync_logs || [];
+    document.getElementById('sync-log-list').innerHTML = logs.length
+      ? logs.map(l=>`<div class="item"><div class="item-title">${l.action||''}</div><div class="item-sub">${l.created_at||''}</div></div>`).join('')
+      : '<div class="empty">No sync logs.</div>';
+  } catch(e) {}
+}
+
+document.getElementById('btn-save-fact').addEventListener('click', async () => {
+  const key = document.getElementById('fact-key').value.trim();
+  const val = document.getElementById('fact-value').value.trim();
+  if (!key||!val) return toast('Key and value required.','',true);
+  await fetch(`${API}/api/facts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,value:val})});
+  toast('Fact saved!'); document.getElementById('fact-key').value=''; document.getElementById('fact-value').value='';
+});
+
+// ── Activity ─────────────────────────────────────────────────
+async function loadActivity() {
+  try {
+    const data   = await (await fetch(`${API}/api/stats`)).json();
+    const monitor = data.monitor || {};
+    const monCard = document.getElementById('monitor-card');
+    monCard.innerHTML = `
+      <div class="mini-card local"><h4>CPU</h4><div class="kv"><span class="kv-k">Usage</span><span class="kv-v">${monitor.cpu_percent!=null?monitor.cpu_percent+'%':'–'}</span></div></div>
+      <div class="mini-card local"><h4>Memory</h4><div class="kv"><span class="kv-k">Used</span><span class="kv-v">${monitor.memory_percent!=null?monitor.memory_percent+'%':'–'}</span></div></div>
+      <div class="mini-card cloud"><h4>Disk</h4><div class="kv"><span class="kv-k">Used</span><span class="kv-v">${monitor.disk_percent!=null?monitor.disk_percent+'%':'–'}</span></div></div>`;
+    const logs   = await (await fetch(`${API}/api/logs?limit=30`)).json();
+    const list   = document.getElementById('activity-list');
+    list.innerHTML = logs.length
+      ? logs.map(l=>`<div class="item"><div class="item-title">[${l.level||''}] ${l.action||''}</div><div class="item-sub">${l.created_at||''} ${l.details?'· '+JSON.stringify(l.details).substring(0,60):''}</div></div>`).join('')
+      : '<div class="empty">No activity yet.</div>';
+  } catch(e) {}
+}
+
+// ── Settings ─────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const data = await (await fetch(`${API}/api/preferences`)).json();
+    const prefs = data.preferences || {};
+    document.getElementById('pref-openrouter-base').value = prefs.openrouter_base || '';
+    // For secret keys: if a key is saved, show a placeholder indicating it's set.
+    // Only overwrite if the user hasn't already typed something into the field.
+    const orKeyEl = document.getElementById('pref-openrouter-key');
+    if (!orKeyEl.value) {
+      if (data.has_openrouter_key) {
+        orKeyEl.placeholder = `Key saved (${data.openrouter_key_hint || '****'}) — paste new key to replace`;
+      } else {
+        orKeyEl.placeholder = 'sk-or-… (no key saved yet)';
+      }
+      orKeyEl.value = '';  // never pre-fill secrets — user must re-enter to change
+    }
+    const sbKeyEl = document.getElementById('pref-supabase-key');
+    if (!sbKeyEl.value) {
+      sbKeyEl.placeholder = data.has_supabase ? 'Key saved — paste new to replace' : 'supabase anon key…';
+      sbKeyEl.value = '';
+    }
+    document.getElementById('pref-supabase-url').value = prefs.supabase_url || '';
+    // Pre-fill admin panel
+    if (data.agent_name) document.getElementById('admin-agent-name').value = data.agent_name;
+    if (data.agent_voice_gender) document.getElementById('admin-voice-gender').value = data.agent_voice_gender;
+  } catch(e) { console.warn('[loadSettings]', e); }
+  loadConnectionCards();
+  loadModelsList();
+}
+
+async function loadConnectionCards() {
+  try {
+    const data  = await (await fetch(`${API}/api/connections`)).json();
+    const cards = document.getElementById('connection-cards');
+    const ol    = data.ollama     || {};
+    const or_   = data.openrouter || {};
+    cards.innerHTML = `
+      <div class="mini-card local">
+        <h4>🦙 Ollama (Local)</h4>
+        <div class="kv">
+          <span class="kv-k">Status</span><span class="kv-v">${ol.connected?'✅ Running':'❌ Offline'}</span>
+          <span class="kv-k">URL</span><span class="kv-v">${ol.base_url||'–'}</span>
+          <span class="kv-k">Latency</span><span class="kv-v">${ol.latency_ms!=null?ol.latency_ms+'ms':'–'}</span>
+          <span class="kv-k">Models</span><span class="kv-v">${(ol.models||[]).length} loaded</span>
+        </div>
+      </div>
+      <div class="mini-card cloud">
+        <h4>☁️ OpenRouter (Cloud)</h4>
+        <div class="kv">
+          <span class="kv-k">Status</span><span class="kv-v">${or_.connected?'✅ Connected':'❌ Offline'}</span>
+          <span class="kv-k">Configured</span><span class="kv-v">${or_.configured?'Yes':'No key set'}</span>
+          <span class="kv-k">Latency</span><span class="kv-v">${or_.latency_ms!=null?or_.latency_ms+'ms':'–'}</span>
+          <span class="kv-k">Free models</span><span class="kv-v">${(or_.free_models||[]).length}</span>
+        </div>
+      </div>`;
+  } catch(e) {}
+}
+
+async function loadModelsList() {
+  try {
+    const data  = await (await fetch(`${API}/api/models`)).json();
+    const local = data.local_models || [];
+    const cloud = data.cloud_models || [];
+    document.getElementById('models-local-list').innerHTML =
+      `<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;">🔧 LOCAL MODELS (${local.length})</div>` +
+      (local.length ? local.map(m => `
+        <div class="item" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="item-title">${escapeHtml(m.name||m.id)}</div>
+            <div class="item-sub">${m.size_gb?m.size_gb+'GB · ':''}${m.parameter_size||''} ${m.status||''}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <span class="dot ${m.connected?'ok':'bad'}"></span>
+            <button class="btn sm" onclick="testModel('local','${m.id}')">Test</button>
+          </div>
+        </div>`).join('') : '<div class="empty">No local models. Run: ollama pull qwen2.5:latest</div>');
+    document.getElementById('models-cloud-list').innerHTML =
+      `<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;">☁️ CLOUD MODELS (${cloud.length})</div>` +
+      (cloud.length ? cloud.map(m => `
+        <div class="item" style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="item-title">${escapeHtml(m.name||m.id)}</div>
+            <div class="item-sub">${m.free?'Free · ':''}${(m.id||'').split('/')[0]} ${m.custom?'· custom':''}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn sm" onclick="testModel('cloud','${m.id}')">Test</button>
+            ${m.custom?`<button class="btn sm danger" onclick="deleteCustomModel('${m.uid||m.id}')">✕</button>`:''}
+          </div>
+        </div>`).join('') : '<div class="empty">No cloud models.</div>');
+  } catch(e) {}
+}
+
+document.getElementById('btn-save-settings').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-save-settings');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    // Build items — only include secret fields if the user actually typed something new
+    const items = {
+      openrouter_base: document.getElementById('pref-openrouter-base').value.trim(),
+      supabase_url:    document.getElementById('pref-supabase-url').value.trim(),
+    };
+    const orKey  = document.getElementById('pref-openrouter-key').value.trim();
+    const sbKey  = document.getElementById('pref-supabase-key').value.trim();
+    // Only overwrite saved secrets if the user typed a new value (non-empty)
+    if (orKey)  items.openrouter_key  = orKey;
+    if (sbKey)  items.supabase_key    = sbKey;
+
+    const r = await fetch(`${API}/api/preferences`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({items})
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(()=>({detail:'Save failed (HTTP '+r.status+')'}));
+      throw new Error(e.detail || JSON.stringify(e));
+    }
+    const saved = (await r.json()).saved || [];
+    btn.textContent = '✅ Saved!';
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Save settings'; }, 2000);
+
+    // Reload settings so placeholder shows the new key hint
+    await loadSettings();
+
+    // Refresh models in background — non-blocking
+    if (orKey) {
+      toast('✅ API key saved!', 'Loading cloud models…');
+      setTimeout(async () => {
+        try {
+          await fetch(`${API}/api/models/refresh`, {method:'POST'});
+          await loadModelSelectors();
+          await loadConnectionCards();
+          toast('☁️ Cloud models ready!');
+        } catch(e) { toast('Model refresh failed', e.message, true); }
+      }, 400);
+    } else {
+      toast('✅ Settings saved!');
+    }
+  } catch(e) {
+    toast('❌ Save failed', e.message, true);
+    btn.disabled = false; btn.textContent = 'Save settings';
+  }
+});
+
+document.getElementById('btn-save-chat-models').addEventListener('click', async () => {
+  const local = document.getElementById('chat-local-model').value;
+  const cloud = document.getElementById('chat-cloud-model').value;
+  const mode  = document.getElementById('chat-mode').value;
+  await fetch(`${API}/api/preferences`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:{
+    selected_local_model:local, selected_cloud_model:cloud, execution_mode:mode
+  }})});
+  toast('Model preferences saved!');
+});
+
+document.getElementById('btn-add-custom').addEventListener('click', async () => {
+  const model = document.getElementById('custom-model').value.trim();
+  if (!model) return toast('Model ID required','',true);
+  await fetch(`${API}/api/models/custom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    name:document.getElementById('custom-name').value,
+    model, base_url:document.getElementById('custom-base').value,
+    api_key:document.getElementById('custom-key').value, free:true
+  })});
+  toast('Custom model added!'); loadModelsList();
+});
+
+async function testModel(provider, model) {
+  toast(`Testing ${model}…`);
+  const res  = await fetch(`${API}/api/models/test`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider,model})});
+  const data = await res.json();
+  toast(data.ok ? `✅ ${model} OK (${data.latency_ms}ms)` : `❌ ${model} failed`, data.error||data.response_preview||'', !data.ok);
+}
+
+async function deleteCustomModel(uid) {
+  await fetch(`${API}/api/models/custom/${uid}`,{method:'DELETE'});
+  toast('Model removed.'); loadModelsList();
+}
+
+document.getElementById('btn-refresh-models').addEventListener('click', () => loadModelsList());
+
+// ── Ollama ───────────────────────────────────────────────────
+async function startOllama() {
+  const btn = document.querySelector('[onclick="startOllama()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Starting…'; }
+  toast('Starting Ollama…');
+  try {
+    const res  = await fetch(`${API}/api/ollama/start`,{method:'POST'});
+    const data = await res.json();
+    toast(data.ok ? '✅ Ollama started!' : '⚠️ ' + data.message, '', !data.ok);
+    refreshOllamaStatus();
+  } catch(e) { toast('Failed to start Ollama','',true); }
+  if (btn) { btn.disabled = false; btn.textContent = '▶ Start Ollama'; }
+}
+
+async function refreshOllamaStatus() {
+  try {
+    // Try llama-cpp backend first
+    const hfData = await (await fetch(`${API}/api/hf/models`)).json();
+    const sysData = await (await fetch(`${API}/api/hf/system`)).json();
+    const el = document.getElementById('ollama-status-text');
+    const urlEl = document.getElementById('ollama-url-display');
+    const models = hfData.models || [];
+    const active = hfData.active_model || '';
+    const backend = sysData.cuda_available ? 'CUDA' : sysData.metal_available ? 'Metal' : 'CPU';
+    const gpu = sysData.gpu_name || 'No GPU';
+    if (el) el.innerHTML = `
+      ✅ <strong>llama-cpp-python</strong> (${backend}) — ${models.length} model${models.length!==1?'s':''} registered
+      ${active ? `<br>⚡ Active: <strong>${active}</strong>` : ''}
+      <br>🖥 ${gpu} · RAM: ${sysData.ram_available_gb} GB free
+      ${sysData.gpu_available ? ` · VRAM: ${sysData.vram_free_gb} GB free` : ''}
+      <br>💡 Recommended quant: <strong>${sysData.recommended_quant}</strong>
+    `;
+    if (urlEl) urlEl.textContent = 'N/A (direct llama-cpp)';
+  } catch(e) {
+    // Fallback to Ollama status
+    try {
+      const data = await (await fetch(`${API}/api/ollama/status`)).json();
+      const el   = document.getElementById('ollama-status-text');
+      if (el) el.innerHTML = data.connected
+        ? `🦙 Ollama fallback — ${(data.models||[]).length} models, latency: ${data.latency_ms}ms`
+        : `❌ No backend available — ${data.error||''}`;
+      const urlEl = document.getElementById('ollama-url-display');
+      if (urlEl && data.base_url) urlEl.textContent = data.base_url;
+    } catch(e2) {}
+  }
+}
+
+// ── Model Capabilities ───────────────────────────────────────
+let _allCaps = {};
+let _activeFilter = 'all';
+
+async function loadCapabilities() {
+  const grid = document.getElementById('cap-grid');
+  if (grid) grid.innerHTML = '<div class="empty">Loading model capabilities…</div>';
+  try {
+    const res  = await fetch(`${API}/api/models/capabilities`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !Object.keys(data).length) throw new Error('No capability data returned');
+    _allCaps = data;
+    renderCapabilities(_allCaps, _activeFilter);
+    renderRecommendations(_allCaps);
+  } catch(e) {
+    if (grid) grid.innerHTML = `<div class="empty">Could not load capabilities: ${escapeHtml(e.message)}<br><button class="btn sm" onclick="loadCapabilities()" style="margin-top:8px;">↻ Retry</button></div>`;
+    console.error('[loadCapabilities]', e);
+  }
+}
+
+function filterCapabilities(btn, filter) {
+  _activeFilter = filter;
+  document.querySelectorAll('.cap-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCapabilities(_allCaps, filter);
+}
+
+function renderCapabilities(data, filter) {
+  const grid = document.getElementById('cap-grid');
+  const entries = Object.entries(data).filter(([id,cap]) => {
+    if (cap.provider === 'not_installed') return false;
+    if (filter === 'all') return true;
+    return (cap.strengths || []).includes(filter);
+  });
+  if (!entries.length) { grid.innerHTML = '<div class="empty">No models match this filter.</div>'; return; }
+  grid.innerHTML = entries.map(([id,cap]) => {
+    const isCloud = cap.provider && cap.provider !== 'local';
+    const tags    = (cap.strengths||[]).map(s => `<span class="strength-tag st-${s}">${s}</span>`).join('');
+    return `<div class="cap-card ${isCloud?'cloud-cap':'local-cap'}">
+      <div class="cap-card-name">${escapeHtml(cap.name||id)}</div>
+      <div class="cap-card-best">✦ ${escapeHtml(cap.best_for||'General purpose')}</div>
+      <div class="cap-card-strengths">${tags}</div>
+      ${cap.context_length?`<div style="font-size:10px;color:var(--muted);margin-top:6px;">Context: ${(cap.context_length/1000).toFixed(0)}K tokens</div>`:''}
+      ${cap.size_gb?`<div style="font-size:10px;color:var(--muted);">Size: ${cap.size_gb}GB</div>`:''}
+      <div style="font-size:10px;margin-top:6px;"><span class="tag ${isCloud?'tag-blue':'tag-green'}">${isCloud?'☁️ Cloud':'🔧 Local'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecommendations(data) {
+  const byStrength = (strength) => Object.entries(data)
+    .filter(([id,c]) => (c.strengths||[]).includes(strength) && c.provider !== 'not_installed')
+    .map(([id,c]) => c.name||id).slice(0,3).join(', ');
+  document.getElementById('rec-analysis').textContent      = byStrength('analysis') || byStrength('general') || '–';
+  document.getElementById('rec-coding').textContent        = byStrength('coding') || '–';
+  document.getElementById('rec-reasoning').textContent     = byStrength('reasoning') || '–';
+  document.getElementById('rec-creative').textContent      = byStrength('creative') || '–';
+  document.getElementById('rec-fast').textContent          = byStrength('fast') || '–';
+  document.getElementById('rec-multilingual').textContent  = byStrength('multilingual') || byStrength('general') || '–';
+}
+
+// ── Admin panel ──────────────────────────────────────────────
+async function verifyAdmin() {
+  const pw  = document.getElementById('admin-pw-input').value;
+  if (!pw) return;
+  const btn = document.querySelector('#stab-advanced button[onclick="verifyAdmin()"]') ||
+              document.querySelector('[onclick="verifyAdmin()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  document.getElementById('admin-pw-error').style.display = 'none';
+  try {
+    const res  = await fetch(`${API}/api/admin/verify`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:pw})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({detail:'Server error '+res.status}));
+      throw new Error(err.detail||'Server error');
+    }
+    const data = await res.json();
+    if (data.ok) {
+      adminUnlocked = true;
+      document.getElementById('admin-lock-screen').style.display = 'none';
+      document.getElementById('admin-panel').classList.add('unlocked');
+      document.getElementById('admin-pw-error').style.display = 'none';
+      loadAdminSettings();
+      loadVoices();
+      toast('🔓 Admin panel unlocked');
+    } else {
+      const errEl = document.getElementById('admin-pw-error');
+      errEl.textContent = 'Incorrect password. Default is: aria2025';
+      errEl.style.display = '';
+    }
+  } catch(e) {
+    const errEl = document.getElementById('admin-pw-error');
+    errEl.textContent = '⚠️ Error: ' + e.message;
+    errEl.style.display = '';
+    console.error('[verifyAdmin]', e);
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Unlock'; }
+}
+
+function lockAdmin() {
+  adminUnlocked = false;
+  document.getElementById('admin-lock-screen').style.display = '';
+  document.getElementById('admin-panel').classList.remove('unlocked');
+  document.getElementById('admin-pw-input').value = '';
+  document.getElementById('admin-pw-error').style.display = 'none';
+}
+
+async function loadAdminSettings() {
+  try {
+    const data = await (await fetch(`${API}/api/admin/settings`)).json();
+    if (data.agent_name) document.getElementById('admin-agent-name').value = data.agent_name;
+    if (data.agent_voice_gender) document.getElementById('admin-voice-gender').value = data.agent_voice_gender;
+    if (data.agent_voice_name) {
+      selectedVoiceName = data.agent_voice_name;
+      setTimeout(() => {
+        const sel = document.getElementById('admin-voice-name');
+        if (sel) sel.value = data.agent_voice_name;
+      }, 600);
+    }
+  } catch(e) {}
+}
+
+async function saveAdminSettings() {
+  const name   = document.getElementById('admin-agent-name').value.trim();
+  const gender = document.getElementById('admin-voice-gender').value;
+  const voice  = document.getElementById('admin-voice-name')?.value || '';
+  selectedVoiceName = voice;
+  try {
+    const res  = await fetch(`${API}/api/admin/settings`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      agent_name: name||null, agent_voice_gender: gender, agent_voice_name: voice
+    })});
+    if (!res.ok) { const e = await res.json().catch(()=>({detail:'Server error '+res.status})); throw new Error(e.detail); }
+    const data = await res.json();
+    if ((data.saved||[]).length) {
+      toast('✅ Admin settings saved!', data.saved.join(', '));
+      if (name) {
+        agentName = name;
+        document.querySelectorAll('.agent-name-display').forEach(el => el.textContent = name);
+        document.getElementById('sidebar-agent-name').textContent = name;
+        document.title = name + ' Dashboard';
+      }
+    }
+  } catch(e) {
+    toast('Save failed', e.message, true);
+    console.error('[saveAdminSettings]', e);
+  }
+}
+
+function switchAdminTab(btn, tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['agent','voice','security'].forEach(t => {
+    const el = document.getElementById('admin-tab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'voice') loadVoices();
+}
+
+function previewVoice() {
+  const voiceName = document.getElementById('admin-voice-name')?.value || '';
+  selectedVoiceName = voiceName;
+  speakText(`Hello! I am ${agentName}, your personal AI assistant. How can I help you today?`);
+  document.getElementById('voice-preview-status').textContent = 'Playing preview…';
+  setTimeout(() => document.getElementById('voice-preview-status').textContent = '', 4000);
+}
+
+async function changeAdminPassword() {
+  const pw1 = document.getElementById('admin-new-pw').value;
+  const pw2 = document.getElementById('admin-new-pw-confirm').value;
+  if (!pw1) return toast('Enter a new password','',true);
+  if (pw1 !== pw2) return toast('Passwords do not match','',true);
+  const hash = await sha256(pw1);
+  await fetch(`${API}/api/admin/settings`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_password_hash:hash})});
+  toast('Admin password changed!');
+  document.getElementById('admin-new-pw').value = '';
+  document.getElementById('admin-new-pw-confirm').value = '';
+}
+
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Refresh / Sync buttons ───────────────────────────────────
+document.getElementById('btn-refresh-all').addEventListener('click', () => {
+  loadConnections(); loadStats(); toast('Refreshed!');
+});
+
+document.getElementById('btn-run-sync').addEventListener('click', async () => {
+  toast('Running sync…');
+  try {
+    await fetch(`${API}/api/sync/run`,{method:'POST'});
+    toast('Sync complete!');
+  } catch(e) { toast('Sync failed','',true); }
+});
+
+document.getElementById('btn-run-sync-settings').addEventListener('click', async () => {
+  await fetch(`${API}/api/sync/run`,{method:'POST'});
+  toast('Sync complete!');
+});
+
+document.getElementById('btn-refresh-connections').addEventListener('click', () => loadConnectionCards());
+
+document.getElementById('btn-upload-chat').addEventListener('click', () => {
+  const fi = document.getElementById('file-input');
+  fi.setAttribute('data-target','chat');
+  fi.click();
+});
+document.getElementById('btn-upload-kb').addEventListener('click', () => {
+  const fi = document.getElementById('file-input');
+  fi.setAttribute('data-target','knowledge');
+  fi.click();
+});
+document.getElementById('file-input').addEventListener('change', async (e) => {
+  const toKb = e.target.getAttribute('data-target') === 'knowledge';
+  for (const file of e.target.files) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('add_to_knowledge', toKb ? 'true' : 'false');
+    const res  = await fetch(`${API}/api/upload`,{method:'POST',body:formData});
+    const data = await res.json();
+    toast(`Uploaded: ${file.name}`, toKb ? 'Added to knowledge' : 'Available for chat');
+  }
+  e.target.value = '';
+  loadUploads();
+  if (toKb) loadKnowledge();
+});
+
+document.getElementById('btn-refresh-reminders').addEventListener('click', async () => {
+  const items = await (await fetch(`${API}/api/tasks/reminders`)).json();
+  const list  = document.getElementById('reminders-list');
+  list.innerHTML = items.length
+    ? items.map(t=>`<div class="item"><div class="item-title">⏰ ${escapeHtml(t.title)}</div><div class="item-sub">Due: ${t.scheduled_at||''}</div></div>`).join('')
+    : '<div class="empty">No upcoming reminders.</div>';
+});
+
+// ── Init ─────────────────────────────────────────────────────
+async function init() {
+  let tries = 0;
+  while (tries < 30) {
+    try {
+      const data = await (await fetch(`${API}/api/ping`)).json();
+      if (data.agent_ready) {
+        agentName = data.agent_name || 'Aria';
+        document.querySelectorAll('.agent-name-display').forEach(el => el.textContent = agentName);
+        document.getElementById('sidebar-agent-name').textContent = agentName;
+        document.title = agentName + ' Dashboard';
+        document.getElementById('startup-agent-name').textContent = agentName;
+        break;
+      }
+    } catch(e) {}
+    document.getElementById('startup-sub').textContent = `Connecting… attempt ${tries+1}`;
+    await new Promise(r => setTimeout(r, 1200));
+    tries++;
+  }
+  document.getElementById('startup-overlay').classList.add('hidden');
+  showPage('chat');
+  // Run all initial loads in parallel; loadModelSelectors ensures dropdowns
+  // are populated even if /api/connections returns before cloud models are ready
+  await Promise.all([loadConnections(), loadStats(), loadModelSelectors()]);
+  // Retry model selector in 3s in case OpenRouter was slow to respond on first call
+  setTimeout(loadModelSelectors, 3000);
+  setInterval(loadConnections, 30000);
+  setInterval(loadStats, 60000);
+}
+
+init();
+</script>
+</body>
+</html>
